@@ -1,77 +1,116 @@
 # Implementation Plan: Behavioral Credit & Hyper-Targeted Lead Engine (Track 02)
 
-This plan outlines the architecture, data models, and developmental phases for building the **Behavioral Credit & Hyper-Targeted Lead Engine** (Alpha-Fin). To ensure maximum hackathon impact, we will build a **Unified Side-by-Side Simulator Dashboard**:
-1. **Left Side**: A simulated mobile banking app (the Customer Portal) where users trigger behavioral events.
-2. **Right Side**: The Relationship Manager (RM) Hub where credit leads appear, score, and trigger automated AI outreach in real-time.
+This plan outlines the architecture, data models, and developmental phases for building the **Behavioral Credit & Hyper-Targeted Lead Engine** (Alpha-Fin) for the **IDBI Innovate 2026 Hackathon**. 
+
+This plan is specifically structured to design a solution that is **production-ready**, **cloud-native**, and **sandbox-adaptable** to seamlessly integrate the IDBI Sandbox APIs, synthetic datasets, and AWS infrastructure provided after shortlisting (scheduled for July 22 - July 31).
 
 ---
 
-## 🏗️ System Architecture
+## 🛠️ Architecture: Local Prototype vs. IDBI Sandbox Target
 
-We will implement a clean, single-repository structure at `/Volumes/DiskD/HACKATHONS/Alpha-Fin/` containing a **FastAPI backend** (Python) and a **Vite/React frontend** (or clean vanilla JS/CSS) for the unified simulator.
+To ensure a smooth transition once shortlisted, the backend is built using the **Adapter Design Pattern**. This allows us to run on local mock data now and swap to the official IDBI APIs and AWS services with simple configuration changes.
+
+```mermaid
+graph TD
+    A[Frontend: Unified Split UI] -->|REST / SSE| B[FastAPI Backend]
+    subgraph Backend Layer
+        B --> C[Service Orchestrator]
+        C --> D[Data Ingestion & API Adapter]
+        D -->|PROTOTYPE| E[(Local SQLite & Clickstream Sim)]
+        D -->|POST-SHORTLIST: Swappable| F[(IDBI Sandbox APIs / Synthetic Datasets)]
+    end
+    subgraph Deployment Target
+        G[AWS ECS / Fargate]
+        H[Amazon RDS PostgreSQL]
+    end
+```
+
+### 1. Swappable Data & API Layer (The Adapter Pattern)
+* **Transaction Ingestion**: A dedicated parser in `data_ingestion.py` will read the raw synthetic transaction and UPI log datasets provided by IDBI Bank.
+* **API Handshake**: The endpoint wrappers (e.g., retrieving bank statement feeds, mapping credit balances) are routed through abstract classes. Swapping from local mocks to IDBI's Sandbox API only requires changing the active class implementation.
+
+### 2. AWS & ACC Deployment Ready
+* **Database**: PostgreSQL-compatible database schemas using SQLAlchemy, ready to migrate from local SQLite to **Amazon RDS (PostgreSQL)**.
+* **Hosting**: The FastAPI service container is Dockerized, ready to deploy to **AWS ECS/Fargate** or **AWS Elastic Beanstalk** using Applied Cloud Computing (ACC) tooling.
+
+---
+
+## 🏗️ System Directory Structure
 
 ```
 /Volumes/DiskD/HACKATHONS/Alpha-Fin/
 ├── backend/
 │   ├── app/
-│   │   ├── main.py            # FastAPI entry point
-│   │   ├── core/              # Configuration and security
-│   │   ├── models/            # SQLAlchemy database models
+│   │   ├── main.py            # FastAPI entry point & API Router
+│   │   ├── models/            # SQLAlchemy models (PostgreSQL compatible)
 │   │   ├── schemas/           # Pydantic validation schemas
+│   │   ├── adapters/          # Swappable integration layer
+│   │   │   ├── base.py        # Abstract interfaces for Banking APIs
+│   │   │   ├── mock_adapter.py# Current prototype simulator database
+│   │   │   └── idbi_sandbox.py# [Future] IDBI Sandbox API adapter
 │   │   ├── services/
 │   │   │   ├── scoring.py     # Propensity & Intent calculation
 │   │   │   ├── credit.py      # Disposable income & debt-service calculator
-│   │   │   └── ai_outreach.py # Generative AI call scripts
-│   │   └── database.py        # SQLite setup
-│   ├── requirements.txt
-│   └── tests/                 # Pytest suite
+│   │   │   └── ai_outreach.py # Generative AI outreach generator
+│   │   └── database.py        # SQLAlchemy engine initializer
+│   ├── requirements.txt       # Python dependency declarations
+│   └── tests/                 # Pytest test suite
 └── frontend/
     ├── index.html             # Unified split-screen frame
     ├── app.js                 # Frontend state and event handling
     ├── style.css              # Custom dark-mode glassmorphic styling
-    └── assets/                # Logos, mock animations
+    └── assets/                # Mock assets, logos, and animations
 ```
 
 ---
 
 ## 🛠️ Phase-by-Phase Development Plan
 
-### 📅 Phase 1: Foundation & Backend Services
-* **Goal**: Establish the data schema, transaction logger, scoring logic, and FastAPI endpoints.
+### 📅 Phase 1: Foundation & Backend Ingestion Services
+* **Goal**: Establish DB schemas, implement core scoring engines, and code the API adapters.
 * **Key Tasks**:
-  * Set up SQLite database with tables for `Customer`, `Transaction`, `ClickstreamEvent`, and `Lead`.
+  * Set up database models with clean abstractions for `Customer`, `Transaction`, `ClickstreamEvent`, and `Lead`.
+  * Write the abstract adapter base class for bank statement and event reading.
   * Implement the **Intent Engine** (`scoring.py`):
-    * Calculate dynamic `Intent Score` based on clickstream logs (e.g., page views, session duration, interest calculators used) and transaction activities.
+    * Calculate dynamic `Intent Score` based on clickstream logs (e.g. page views, session duration, auto/home loan calculator usage).
   * Implement the **True Income Assessment Engine** (`credit.py`):
-    * Parse transaction descriptions (e.g., matching salary deposits, active EMI debits, recurring mutual funds/SIPs, insurance premiums).
-    * Calculate `Actual Disposable Income` = `Total Inflows` - `Mandatory Outflows` (EMIs + SIPs + bills).
-  * Expose API endpoints:
-    * `POST /api/events` (log behavioral/clickstream events)
-    * `GET /api/leads` (fetch prioritized leads for RM)
-    * `POST /api/outreach/generate` (LLM-based personalized marketing copy generator)
+    * Parse transactional logs to identify recurring monthly inflows (salary, dividends) and outflows (existing EMIs, active mutual fund SIPs, fixed utility bills).
+    * Calculate `Actual Disposable Income` = `Total Inflows` - `Mandatory Outflows`.
 
 ### 📅 Phase 2: Split-Screen Simulator UI (Frontend)
-* **Goal**: Build a unified, high-fidelity browser interface styled with rich aesthetics (dark-mode, neon accents, glassmorphic card borders).
+* **Goal**: Build a unified, high-fidelity browser interface representing the live customer journey and the RM control room.
 * **Left Panel: Customer Mobile Simulator**:
-  * An interactive mock phone screen representing the bank's customer app.
-  * Quick-trigger event simulator buttons for judges to act as the customer:
-    * *Button A*: "Simulate Salary Hike ($15\%$ credit bump)"
+  * Simulated banking mobile application.
+  * Quick-trigger event simulator buttons:
+    * *Button A*: "Simulate Salary Hike (15% credit bump)"
     * *Button B*: "Simulate Auto Loan Interest Search (3 clicks)"
     * *Button C*: "Simulate $45,000 transaction to Home Decor/Interior Vendor"
-  * Visual log showing immediate local actions.
 * **Right Panel: Relationship Manager (RM) Hub**:
-  * **Lead Board**: Interactive table sorting leads by Propensity (Hot/Warm/Cold) and calculated Credit Limit.
-  * **Behavioral Timeline**: A live feed of events showing why a lead triggered (e.g., *"Clicked Home Loan page 4 times; disposable income rose to $75,000"*).
-  * **Disposable Income Breakdown**: Circular gauge charts comparing Gross Income vs. True Disposable Income.
-  * **AI Outreach Assistant**: Click to open a modal that displays an LLM-generated personalized pitch (SMS, WhatsApp, or phone script) dynamically customized to their context.
+  * **Lead Board**: Dynamic customer lead lists ranked by Propensity Score and Debt-Service Coverage.
+  * **Behavioral Timeline**: Live event logs showing customer actions leading to the trigger.
+  * **AI Outreach Assistant**: Generates customized WhatsApp/email pitches tailored to customer context and their exact loan type.
 
-### 📅 Phase 3: AI Integration & Testing
-* **Goal**: Hook up the generative AI outreach, refine the scoring algorithms, and perform automated testing.
+### 📅 Phase 3: AI Integration, Test Suit & AWS Readiness
+* **Goal**: Connect the generative AI writing assistant, ensure compliance, run standard linting, and verify.
 * **Key Tasks**:
-  * Integrate OpenAI / Gemini API (or a high-fidelity local fallback generator) to write customized marketing outreach scripts.
-  * Run static analysis and linting (`flake8`, `black`, `mypy`).
-  * Implement unit tests in `backend/tests/` to verify income calculations and propensity score boundaries.
-  * Package a quick launch script (`run_dev.sh`) to start both backend and frontend servers in one command.
+  * Integrate LLM endpoints (via Gemini/OpenAI APIs) to customize RM marketing copy.
+  * Implement `backend/tests/` to run unit tests verifying the calculation of disposable income and correct scoring of client intent.
+  * Create a Dockerfile to ensure containerized portability for the AWS/ACC cloud hosting.
+
+---
+
+## 🚀 Post-Shortlisting Roadmap (July 22 - July 31)
+
+Once shortlisted for the Sandbox phase, the system will adapt along the following path:
+
+```
+[Shortlisting (July 22)] 
+   └── 1. Swapping mock adapters with IDBI Sandbox APIs in backend/app/adapters/
+   └── 2. Ingesting synthetic UPI & Transaction Datasets into postgres
+   └── 3. Setting up cloud deployment on AWS ECS + RDS PostgreSQL
+   └── 4. Refining model parameters using official transaction logs
+   └── 5. Live Demonstration & Pitch to IDBI Mentors
+```
 
 ---
 
