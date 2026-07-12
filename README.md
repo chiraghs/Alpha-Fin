@@ -41,46 +41,50 @@ To support high-scale deployments, Prospect Assist AI is designed for cloud-nati
 * **Campaign Efficacy & Conversion Lift Dashboard**: Segmenting prospects into Treated and Control cohorts allows the bank to isolate outreach conversion lift directly from database tables, verifying that the solution exceeds the target conversion rates.
 ```mermaid
 graph LR
-    subgraph Sources [1. Data Sources]
-        CB[Core Banking]
-        IB[Internet Banking]
-        UPI[UPI Transactions]
-        Bureau[Credit Bureau]
-        CRM[CRM Data]
+    subgraph Sources [1. Data Ingestion Sources]
+        CB[Core Banking Ledger]
+        IB[Internet Clickstream Logs]
+        UPI[UPI Real-time Feeds]
+        Bureau[External Credit Bureau]
+        CRM[Bank CRM History]
     end
 
-    subgraph AppEngine [2. Processing & ML Models Layer]
-        Lake[(Data Lake)]
-        FE[Feature Engineering]
+    subgraph AppEngine [2. Processing & Models Core]
+        Lake[(Data Lake Processing)]
+        FE[Feature Engineering & Timestamps]
         
-        subgraph MLModels [Multi-Model Analytics Core]
+        subgraph MLModels [Decision Intelligence Models]
             Income[Model 1: Income Estimation]
             
             subgraph IntentEngine [Intent Core]
                 Graph[Graph Clickstream Matching]
                 GBDT[GBDT Propensity Scorer]
-                Intent[Model 2: Intent Prediction]
+                Velocity[Intent Velocity Tracker]
             end
             
-            Risk[Model 3: Risk & Underwriting]
+            LifeEvents[Life Event Detection Engine]
+            RiskModel[Model 3: Risk & Underwriting]
             Conversion[Model 4: Conversion ML]
-            History[Model 5: Historical Conversion ML]
+            History[Model 5: Historical Conversion]
         end
         
-        Ranking[Lead Ranking & Threshold Filter >70%]
+        Pruning{Risk Underwriting Gate Filter}
+        LRI[Loan Readiness Index Calculator]
+        Ranking[Lead Ranker & Adjustable Slider Filter]
     end
 
-    subgraph Storage [3. Database Layer]
-        RDS[(AWS RDS PostgreSQL)]
+    subgraph Storage [3. Database Storage Layer]
+        RDS[(AWS RDS / Local SQLite)]
     end
 
     subgraph Presentation [4. Presentation Layer]
         UI[Relationship Manager Dashboard UI]
-        ABDashboard[Campaign Efficacy & Conversion Lift Dashboard]
-        TwinAnalyzer[Behavioral Financial Twin Portfolio Analyzer]
+        ABDashboard[Campaign Efficacy & Conversion Lift]
+        TwinAnalyzer[Behavioral Twin Portfolio Drilldown]
+        Outreach[AI Personalized Outreach Generator]
     end
 
-    %% Data Flow
+    %% Data Inflows
     CB --> Lake
     IB --> Lake
     UPI --> Lake
@@ -90,23 +94,34 @@ graph LR
     Lake --> FE
     FE --> Income
     FE --> Graph
-    FE --> Risk
-    FE --> Conversion
+    FE --> RiskModel
     FE --> History
+    FE --> LifeEvents
+    FE --> Velocity
+    FE --> Conversion
     
     Graph --> GBDT
-    GBDT --> Intent
     
-    Income --> Conversion
-    Intent --> Conversion
-    Risk --> Conversion
-    History --> Conversion
+    %% All Models Feed Into Risk Underwriting Gate Filter
+    Income --> Pruning
+    GBDT --> Pruning
+    Velocity --> Pruning
+    LifeEvents --> Pruning
+    RiskModel --> Pruning
+    Conversion --> Pruning
+    History --> Pruning
     
-    Conversion --> Ranking
+    Pruning -->|Pass / Low-Medium Risk| LRI
+    Pruning -->|Block / High Risk Subprime| Trash[Pruned Lead / Removed]
+    
+    LRI --> Ranking
     Ranking --> RDS
+    
+    %% UI Presentation
     RDS --> UI
     RDS --> ABDashboard
     RDS --> TwinAnalyzer
+    RDS --> Outreach
 ```
 
 The codebase is split into a robust FastAPI python backend and a responsive dark-themed frontend:
