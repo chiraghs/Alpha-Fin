@@ -141,9 +141,14 @@
 
             <!-- RIGHT PANEL: RM COMMAND CENTER -->
             <section class="right-panel">
-                <div class="panel-header">
-                    <h2><i class="fa-solid fa-chart-line"></i> Relationship Manager Hub</h2>
-                    <p>Real-time underwriting feed, customer propensity tracking, and AI-driven campaign triggers</p>
+                <div class="panel-header" style="display: flex; justify-content: space-between; align-items: start; width: 100%;">
+                    <div>
+                        <h2><i class="fa-solid fa-chart-line"></i> Relationship Manager Hub</h2>
+                        <p>Real-time underwriting feed, customer propensity tracking, and AI-driven campaign triggers</p>
+                    </div>
+                    <div id="connectionStatusBadge" class="connection-status-badge live-connected" style="margin-top: 4px;">
+                        <i class="fa-solid fa-circle pulse-dot"></i> Live API
+                    </div>
                 </div>
 
                 <!-- Stats summary strip -->

@@ -1,0 +1,103 @@
+{
+  "schema": "1",
+  "id": "prospect-assist-ai-deployment-pipeline",
+  "application": "prospectassistai",
+  "name": "Deploy to ECS Fargate",
+  "keepWaitingPipelines": false,
+  "limitConcurrent": true,
+  "stages": [
+    {
+      "name": "Wait for Git Push CI success",
+      "type": "wait",
+      "refId": "1",
+      "requisiteStageRefIds": []
+    },
+    {
+      "name": "Build Docker Image",
+      "type": "jenkins",
+      "refId": "2",
+      "requisiteStageRefIds": [
+        "1"
+      ]
+    },
+    {
+      "name": "Deploy to Staging (ECS)",
+      "type": "deploy",
+      "refId": "3",
+      "requisiteStageRefIds": [
+        "2"
+      ],
+      "clusters": [
+        {
+          "account": "idbi-aws-staging",
+          "application": "prospectassistai",
+          "availabilityZones": {
+            "ap-south-1": [
+              "ap-south-1a",
+              "ap-south-1b"
+            ]
+          },
+          "capacity": {
+            "desired": 2,
+            "max": 4,
+            "min": 1
+          },
+          "targetGroupArns": [],
+          "loadBalancers": [],
+          "provider": "ecs",
+          "stack": "staging",
+          "subnetType": "private",
+          "launchType": "FARGATE"
+        }
+      ]
+    },
+    {
+      "name": "Manual Judgement Promotion Gate",
+      "type": "manualJudgment",
+      "refId": "4",
+      "requisiteStageRefIds": [
+        "3"
+      ],
+      "instructions": "Verify Staging metrics are healthy before promoting to Production."
+    },
+    {
+      "name": "Deploy to Production Canary (ECS)",
+      "type": "deploy",
+      "refId": "5",
+      "requisiteStageRefIds": [
+        "4"
+      ],
+      "clusters": [
+        {
+          "account": "idbi-aws-prod",
+          "application": "prospectassistai",
+          "availabilityZones": {
+            "ap-south-1": [
+              "ap-south-1a",
+              "ap-south-1b"
+            ]
+          },
+          "capacity": {
+            "desired": 4,
+            "max": 8,
+            "min": 2
+          },
+          "provider": "ecs",
+          "stack": "prod",
+          "subnetType": "private",
+          "launchType": "FARGATE"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "enabled": true,
+      "type": "git",
+      "source": "github",
+      "project": "idbi-innovate",
+      "slug": "prospect-assist-ai",
+      "branch": "main"
+    }
+  ]
+}
