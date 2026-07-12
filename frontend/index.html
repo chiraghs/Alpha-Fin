@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpha-Fin: Split-Screen Hackathon Simulator</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- HEADER -->
+        <header class="app-header">
+            <div class="logo-area">
+                <i class="fa-solid fa-building-columns brand-icon"></i>
+                <div class="brand-text">
+                    <h1>ALPHA-FIN</h1>
+                    <span>IDBI Innovate 2026 // Track 02</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="btnResetDB" class="btn btn-secondary">
+                    <i class="fa-solid fa-rotate-left"></i> Reset Sandbox DB
+                </button>
+                <div class="status-indicator">
+                    <span class="dot pulse"></span> Sandbox Online
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN LAYOUT -->
+        <main class="split-view">
+            <!-- LEFT PANEL: CUSTOMER MOBILE SIMULATOR -->
+            <section class="left-panel">
+                <div class="panel-header">
+                    <h2><i class="fa-solid fa-mobile-screen-button"></i> Customer Portal Simulator</h2>
+                    <p>Select a customer to act on behalf of and trigger real-time events</p>
+                </div>
+                
+                <div class="selector-card">
+                    <label for="customerSelect">Active Customer Profile:</label>
+                    <select id="customerSelect" class="form-select">
+                        <!-- Loaded dynamically -->
+                    </select>
+                </div>
+
+                <div class="phone-frame-wrapper">
+                    <div class="phone-frame">
+                        <div class="phone-screen">
+                            <!-- Phone Status Bar -->
+                            <div class="phone-status-bar">
+                                <span class="time">12:00</span>
+                                <div class="indicators">
+                                    <i class="fa-solid fa-wifi"></i>
+                                    <i class="fa-solid fa-signal"></i>
+                                    <i class="fa-solid fa-battery-full"></i>
+                                </div>
+                            </div>
+                            <!-- Phone App Header -->
+                            <div class="phone-app-header">
+                                <div class="bank-title"><i class="fa-solid fa-b"></i> IDBI Go Mobile+</div>
+                                <div class="user-greeting">Hello, <span id="phoneUserName">Aarav</span></div>
+                            </div>
+                            <!-- Phone App Content -->
+                            <div class="phone-app-content">
+                                <!-- Account Card -->
+                                <div class="account-card">
+                                    <span class="card-label">Primary Account</span>
+                                    <h3 id="phoneUserAccount">IDBI100892931</h3>
+                                    <div class="card-footer">
+                                        <span>Savings Balance</span>
+                                        <strong id="phoneUserBalance">₹1,42,000.00</strong>
+                                    </div>
+                                </div>
+
+                                <!-- App Navigation/Actions -->
+                                <div class="app-section">
+                                    <h4>Explore Products</h4>
+                                    <div class="product-grid">
+                                        <button class="product-btn" onclick="logClickstream('/auto-loan', 'VIEW')">
+                                            <i class="fa-solid fa-car"></i>
+                                            <span>Auto Loan</span>
+                                        </button>
+                                        <button class="product-btn" onclick="logClickstream('/home-loan', 'VIEW')">
+                                            <i class="fa-solid fa-house-chimney"></i>
+                                            <span>Home Loan</span>
+                                        </button>
+                                        <button class="product-btn" onclick="logClickstream('/personal-loan', 'VIEW')">
+                                            <i class="fa-solid fa-user-tie"></i>
+                                            <span>Personal Loan</span>
+                                        </button>
+                                        <button class="product-btn" onclick="logClickstream('/mortgage-loan', 'VIEW')">
+                                            <i class="fa-solid fa-hand-holding-dollar"></i>
+                                            <span>Mortgage</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Calculator Action -->
+                                <div class="app-section">
+                                    <h4>Financial Tools</h4>
+                                    <div class="calculator-trigger" onclick="logClickstream('/loan-calculator', 'CALCULATE_EMI')">
+                                        <div class="calc-icon"><i class="fa-solid fa-calculator"></i></div>
+                                        <div class="calc-text">
+                                            <h5>Calculate Loan EMIs</h5>
+                                            <p>Check dynamic monthly payments instantly</p>
+                                        </div>
+                                        <i class="fa-solid fa-chevron-right arrow"></i>
+                                    </div>
+                                </div>
+
+                                <!-- Quick Event Simulator Actions (HACKATHON POWER BUTTONS) -->
+                                <div class="app-section hack-triggers">
+                                    <h4>Simulation Triggers</h4>
+                                    <p class="section-desc">Instantly push realistic transactions or behaviors into the system to watch the RM board update:</p>
+                                    
+                                    <button class="btn btn-hack btn-hike" onclick="triggerSalaryHike()">
+                                        <i class="fa-solid fa-trend-up"></i> Simulate 15% Salary Increment
+                                    </button>
+                                    <button class="btn btn-hack btn-auto" onclick="triggerAutoSearch()">
+                                        <i class="fa-solid fa-car-side"></i> Browse Auto Loan Page (3x hits)
+                                    </button>
+                                    <button class="btn btn-hack btn-decor" onclick="triggerDecorSpend()">
+                                        <i class="fa-solid fa-couch"></i> Spend ₹65,000 at Home Decor Vendor
+                                    </button>
+                                    <button class="btn btn-hack btn-penalty" onclick="triggerCcPenalty()">
+                                        <i class="fa-solid fa-circle-exclamation"></i> Hit Credit Card Late Fee Penalty
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RIGHT PANEL: RM COMMAND CENTER -->
+            <section class="right-panel">
+                <div class="panel-header">
+                    <h2><i class="fa-solid fa-chart-line"></i> Relationship Manager Hub</h2>
+                    <p>Real-time underwriting feed, customer propensity tracking, and AI-driven campaign triggers</p>
+                </div>
+
+                <!-- Stats summary strip -->
+                <div class="stats-strip">
+                    <div class="stat-card">
+                        <span class="stat-label">Total Leads</span>
+                        <h3 id="statTotalLeads">0</h3>
+                    </div>
+                    <div class="stat-card hot-stat">
+                        <span class="stat-label">Hot Leads</span>
+                        <h3 id="statHotLeads">0</h3>
+                    </div>
+                    <div class="stat-card target-stat">
+                        <span class="stat-label">Conversion Rate</span>
+                        <h3>>30% <span class="badge">Target</span></h3>
+                    </div>
+                </div>
+
+                <!-- LEAD BOARD TABLE -->
+                <div class="leads-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-list-check"></i> High-Intent Prioritized Leads</h3>
+                        <span class="refresh-indicator" id="refreshIndicator"><i class="fa-solid fa-arrows-rotate"></i> Real-time Sync Active</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="leads-table">
+                            <thead>
+                                <tr>
+                                    <th>Customer Name</th>
+                                    <th>Target Product</th>
+                                    <th>Disposable Income</th>
+                                    <th>Credit Score</th>
+                                    <th>Propensity</th>
+                                    <th>Eligible Limit</th>
+                                    <th>Outreach</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leadsTableBody">
+                                <!-- Loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- AI OUTREACH DRAWER (Appears when Outreach is clicked) -->
+                <div id="outreachDrawer" class="outreach-drawer hidden">
+                    <div class="drawer-header">
+                        <h3><i class="fa-solid fa-wand-magic-sparkles"></i> AI Outreach Copy Generator</h3>
+                        <button class="btn-close-drawer" onclick="closeOutreachDrawer()"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div class="drawer-content">
+                        <div class="lead-context-summary">
+                            <p>Generating campaign outreach for <strong id="outreachCustomerName">Aarav Mehta</strong> for a <strong id="outreachLoanType">Auto Loan</strong> of up to <strong id="outreachAmount">₹0</strong>.</p>
+                        </div>
+                        
+                        <div class="channel-tabs">
+                            <button id="tabWhatsapp" class="tab-btn active" onclick="switchOutreachChannel('whatsapp')">
+                                <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                            </button>
+                            <button id="tabEmail" class="tab-btn" onclick="switchOutreachChannel('email')">
+                                <i class="fa-solid fa-envelope"></i> Email
+                            </button>
+                            <button id="tabCallScript" class="tab-btn" onclick="switchOutreachChannel('call_script')">
+                                <i class="fa-solid fa-phone"></i> RM Script
+                            </button>
+                        </div>
+
+                        <div class="outreach-text-wrapper">
+                            <div id="outreachContentLoader" class="loader-spinner hidden">
+                                <i class="fa-solid fa-circle-notch fa-spin"></i> Generating script...
+                            </div>
+                            <pre id="outreachContentText" class="outreach-pre">Click generate to view content...</pre>
+                        </div>
+
+                        <div class="drawer-actions">
+                            <button id="btnCopyOutreach" class="btn btn-primary">
+                                <i class="fa-solid fa-copy"></i> Copy to Clipboard
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toastNotification" class="toast hidden">
+        <i class="fa-solid fa-circle-check toast-icon"></i>
+        <span id="toastMessage">Lead updated successfully!</span>
+    </div>
+
+    <!-- App Script -->
+    <script src="app.js"></script>
+</body>
+</html>
