@@ -110,6 +110,25 @@ def get_customer_detail(customer_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Customer not found")
     return customer
 
+@app.get("/api/customers/{customer_id}/twin")
+def get_customer_twin_profile(customer_id: int, db: Session = Depends(get_db)):
+    cust = db.query(Customer).filter(Customer.id == customer_id).first()
+    if not cust:
+        raise HTTPException(status_code=404, detail="Customer not found")
+        
+    tx_list = [{"amount": t.amount, "category": t.category, "description": t.description, "timestamp": t.timestamp} for t in cust.transactions]
+    click_list = [{"page_url": c.page_url, "action": c.action, "timestamp": c.timestamp} for c in cust.clickstream_events]
+    
+    twin_data = evaluate_propensity_and_intent(click_list, tx_list, cust.credit_score)
+    
+    return {
+        "customer_id": cust.id,
+        "name": cust.name,
+        "account_number": cust.account_number,
+        "credit_score": cust.credit_score,
+        "twins": twin_data
+    }
+
 # --- Clickstream Events Endpoints ---
 @app.post("/api/clickstream", status_code=201)
 def log_clickstream_event(event: ClickstreamEventCreate, db: Session = Depends(get_db)):

@@ -97,7 +97,7 @@ Instead of a single, opaque score, Prospect Assist AI splits calculations across
 
 * **GBDT Propensity Scorer**: Captures complex, non-linear feature interactions (such as the convergence of credit bureau history, calculator engagement, and specific category transactional debit actions) to prevent false positives.
 * **Graph Clickstream Sequence Matcher**: Analyzes sequential app hits as a directed transition graph to verify active shopping intents (triggering a $+1.5$ log-odds boost on targeted sequences).
-* **Causal A/B Campaign Lift Dashboard**: Segments incoming leads into Treated (personalized AI) and Control (generic pre-approved) cohorts to dynamically isolate outreach effectiveness and conversion rates directly from database tables.
+* **Campaign Efficacy & Conversion Lift Dashboard**: Segments incoming leads into Treated (personalized AI) and Control (generic pre-approved) cohorts to dynamically isolate outreach effectiveness and conversion rates directly from database tables.
 
 The data flow from ingestion to display is structured as follows:
 
@@ -139,7 +139,8 @@ The data flow from ingestion to display is structured as follows:
                    │                           │
          ┌─────────┴───────────────────────────┴─────────┐
          │       Relationship Manager Lead Board         │
-         │  [ Causal A/B Campaign Lift Dashboard ]       │
+         ├───────────────────────────────────────────────┤
+         │  [ Leads & Campaign ]  [ Portfolio Analyzer ] │
          └───────────────────────────────────────────────┘
 ```
 
@@ -171,7 +172,7 @@ The data flow from ingestion to display is structured as follows:
 * **Purpose**: Predicts probability that a generated lead will accept the outreach campaign.
 * **Inputs**: Income, bureau score, calculated intent, existing relationship tags, previous offers accepted, response history.
 * **Outputs**: Conversion Probability (Scale 0-100%).
-* **Lead Qualification Threshold**: Leads with a conversion probability **exceeding 70%** are prioritized and pushed directly to the Relationship Manager Dashboard for AI-Assisted outreach.
+* **Lead Qualification Threshold**: Leads default to a qualification threshold of **70%**, but provides an interactive slider on the RM Dashboard so that managers can dynamically adjust the queue from 35% to 95% depending on branch workload.
 
 ---
 
@@ -219,9 +220,15 @@ $$\text{Lead Score} = 0.35 \times \text{Intent} + 0.30 \times \text{Repayment Ca
   * **Model 2: Intent Prediction** (loan interest score from digital footprint).
   * **Model 3: Risk & Underwriting** (PD default probability & risk tiering).
   * **Model 4: Conversion Prediction** (conversion probability combination).
-* Configure the **70% Lead Threshold Filter** to block low-quality leads and push only high-converting ones to sales.
+* Configure the **Adjustable Lead Threshold Filter** (defaulting to 70%, adjustable from 35% to 95%) to block low-quality leads and allow managers to dynamically customize their active lead board queues.
 
 ### 📅 Phase 4: AI Integration, Test Suite & AWS Readiness ➔ `[x] COMPLETED`
 * Integrate LLM outreach templates with WhatsApp/email templates and Control group fallback templates.
 * Write full unit test checks inside `backend/tests/` to verify income estimators and model probabilities.
 * Create a Dockerfile to package the FastAPI app for containerized deployments via ACC tooling on **AWS ECS / Fargate** and **RDS PostgreSQL**.
+
+### 📅 Phase 5: Behavioral Financial Twin Portfolio Analyzer ➔ `[x] COMPLETED`
+* Implement `GET /api/customers/{customer_id}/twin` to serve deep twin profile metrics dynamically for all products.
+* Add navigation tab buttons to switch between "Prioritized Leads" and "Customer Twin Portfolio" view screen.
+* Build a sidebar to list all customer profiles, letting managers drill down into the six component scores of any customer.
+* Integrate explainable natural-language AI narration panels explaining exactly why the score was assigned and highlighting target eligible limits.

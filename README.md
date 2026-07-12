@@ -38,8 +38,7 @@ To support high-scale deployments, Prospect Assist AI is designed for cloud-nati
 ### 🛡️ How the Core Components Optimize Underwriting & Sales:
 * **GBDT Propensity Scorer**: Prevents simple linear modeling. Evaluates non-linear feature interactions (e.g. high credit score vs. statement late charge penalties) to estimate exact conversion probability and filter unqualified leads.
 * **Graph Clickstream Sequence Matcher**: Parses app hits as a directed transition graph. Identifies sequential navigation patterns (`VIEW ➔ CALCULATE_EMI ➔ CLICK_APPLY`) to filter accidental clicks and trigger a $+1.5$ log-odds margin boost.
-* **Causal A/B Campaign Lift Dashboard**: Segmenting prospects into Treated and Control cohorts allows the bank to isolate outreach conversion lift directly from database tables, verifying that the solution exceeds the target conversion rates.
-
+* **Campaign Efficacy & Conversion Lift Dashboard**: Segmenting prospects into Treated and Control cohorts allows the bank to isolate outreach conversion lift directly from database tables, verifying that the solution exceeds the target conversion rates.
 ```mermaid
 graph LR
     subgraph Sources [1. Data Sources]
@@ -71,12 +70,13 @@ graph LR
     end
 
     subgraph Storage [3. Database Layer]
-        RDS[(Our AWS RDS PostgreSQL)]
+        RDS[(AWS RDS PostgreSQL)]
     end
 
     subgraph Presentation [4. Presentation Layer]
         UI[Relationship Manager Dashboard UI]
-        ABDashboard[Causal A/B Campaign Lift Dashboard]
+        ABDashboard[Campaign Efficacy & Conversion Lift Dashboard]
+        TwinAnalyzer[Behavioral Financial Twin Portfolio Analyzer]
     end
 
     %% Data Flow
@@ -103,6 +103,7 @@ graph LR
     Ranking --> RDS
     RDS --> UI
     RDS --> ABDashboard
+    RDS --> TwinAnalyzer
 ```
 
 The codebase is split into a robust FastAPI python backend and a responsive dark-themed frontend:
@@ -185,7 +186,7 @@ The ensemble consists of three decision trees:
 ### 2. Graph Clickstream Sequence Transition
 Taps on the mobile app are parsed as a directed state-space transition graph. Sequences matching the target sequence:
 
-$$\text{VIEW} \xrightarrow{\text{app click}} \text{CALCULATE\_EMI} \xrightarrow{\text{app click}} \text{CLICK\_APPLY}$$
+$$\text{VIEW} \xrightarrow{\text{app click}} \text{CALCULATE EMI} \xrightarrow{\text{app click}} \text{CLICK APPLY}$$
 
 satisfy `has_high_intent_path == True` and receive the **+1.5 log-odds boost** in GBDT Tree 2, highlighting trajectory intent.
 
@@ -209,8 +210,14 @@ $$\text{Lead Score} = 0.35 \times \text{Intent} + 0.30 \times \text{Repayment Ca
 * **Customer Relationship** is mapped based on credit score bands.
 * **Adjustable Filter Threshold**: Defaults to **70%**, but provides an interactive slider on the Relationship Manager Dashboard, allowing the manager to dynamically customize the lead bar (from 35% to 95%) in real-time to fit current branch capacity.
 
-### 5. Causal A/B Campaign Lift Dashboard
+### 5. Campaign Efficacy & Conversion Lift Dashboard
 Prospect Assist AI dynamically segments leads into two cohorts to evaluate campaign conversion rate lift:
 * **Treated Cohort (AI-Personalized Outreach)**: Receives hyper-targeted AI-personalized pitches detailing eligible limits.
 * **Control Cohort (Generic Templates)**: Receives standard generic template bank spam.
 RMs log lead outcomes in the UI to refresh conversion rates and the lift percentage ($\text{Conversion Lift} = \text{Treated Rate} - \text{Control Rate}$) in real-time.
+
+### 6. Behavioral Financial Twin Portfolio Analyzer (Phase 5)
+Prospect Assist AI provides an interactive **Customer Twin Portfolio Hub** allowing the Relationship Manager to drill down into the six component scores of any customer:
+* **Granular Drill-Down**: Shows precise metrics (Discipline, Repayment, Stability, Confidence, Intent, Acceptance) per product (Auto, Home, Personal, Mortgage) in a separate tabbed view.
+* **Explainable AI Log**: Displays natural-language reason logs explaining *why* the specific score was assigned, translating transaction/clickstream behaviors into business summaries.
+* **Dynamic Loan Limits**: Calculates the exact eligible limit and FOIR (debt capacity) headroom dynamically.

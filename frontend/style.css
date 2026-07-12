@@ -724,20 +724,50 @@ body {
    ========================================== */
 
 .outreach-drawer {
-    background-color: var(--bg-card);
-    border: 1px solid var(--accent-blue);
-    box-shadow: 0 10px 40px rgba(79, 172, 254, 0.2);
-    border-radius: 12px;
-    margin-top: 1rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(10, 16, 26, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    transition: opacity 0.25s ease;
     opacity: 1;
-    transform: translateY(0);
 }
 
 .outreach-drawer.hidden {
-    display: none;
+    display: none !important;
     opacity: 0;
-    transform: translateY(20px);
+}
+
+.outreach-modal-card {
+    background-color: #0f1624;
+    border: 1px solid var(--accent-blue);
+    box-shadow: 0 20px 50px rgba(0, 180, 255, 0.25);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 1040px;
+    max-height: 85vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    animation: modalSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalSlideIn {
+    0% {
+        transform: scale(0.9) translateY(20px);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
 }
 
 .drawer-header {
@@ -1245,4 +1275,366 @@ body {
 
 .threshold-slider::-webkit-slider-thumb:hover {
     transform: scale(1.2);
+}
+
+/* ==========================================
+   RM HUB VIEW SWITCHING NAVIGATION TABS
+   ========================================== */
+
+.rm-nav-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border-glass);
+    padding-bottom: 0.5rem;
+}
+
+.nav-tab-btn {
+    background-color: transparent;
+    border: 1px solid transparent;
+    color: var(--text-secondary);
+    font-family: var(--font-header);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.2s ease;
+}
+
+.nav-tab-btn:hover {
+    color: var(--text-primary);
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.nav-tab-btn.active {
+    color: #ffffff;
+    background: linear-gradient(135deg, rgba(0, 180, 255, 0.15) 0%, rgba(0, 180, 255, 0.05) 100%);
+    border: 1px solid rgba(0, 180, 255, 0.25);
+    box-shadow: 0 0 10px rgba(0, 180, 255, 0.1);
+}
+
+/* ==========================================
+   TWIN PORTFOLIO LAYOUT STYLES
+   ========================================== */
+
+.twin-portfolio-layout {
+    display: flex;
+    gap: 1.25rem;
+    min-height: 520px;
+}
+
+.portfolio-sidebar {
+    width: 200px;
+    border-right: 1px solid var(--border-glass);
+    padding-right: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+
+.portfolio-sidebar h4 {
+    font-family: var(--font-header);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+}
+
+.portfolio-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    overflow-y: auto;
+    max-height: 480px;
+    padding-right: 0.25rem;
+}
+
+.portfolio-cust-item {
+    background-color: rgba(255, 255, 255, 0.01);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 6px;
+    padding: 0.6rem 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.portfolio-cust-item:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.portfolio-cust-item.active {
+    background: linear-gradient(135deg, rgba(0, 180, 255, 0.08) 0%, rgba(0, 180, 255, 0.02) 100%);
+    border-color: rgba(0, 180, 255, 0.4);
+    box-shadow: 0 0 8px rgba(0, 180, 255, 0.08);
+}
+
+.portfolio-cust-item strong {
+    font-size: 0.8rem;
+    color: var(--text-primary);
+}
+
+.portfolio-cust-item span {
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+}
+
+/* Detail Card & Deep Twin */
+.portfolio-detail-card {
+    flex: 1;
+    background-color: rgba(255, 255, 255, 0.01);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.detail-empty-state {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 3rem;
+}
+
+.detail-empty-state i {
+    font-size: 2.5rem;
+    color: rgba(255, 255, 255, 0.05);
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.detail-empty-state p {
+    font-size: 0.8rem;
+    max-width: 320px;
+    margin: 0 auto;
+    line-height: 1.45;
+}
+
+.detail-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.detail-customer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.detail-customer-header h3 {
+    font-family: var(--font-header);
+    font-size: 1.25rem;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.detail-acc-label {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    display: block;
+    margin-top: 0.15rem;
+}
+
+.divider {
+    border: 0;
+    border-top: 1px solid var(--border-glass);
+    margin: 0.25rem 0;
+}
+
+.twin-grid-large {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.twin-progress-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    background-color: rgba(255, 255, 255, 0.01);
+    border: 1px solid rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
+}
+
+.progress-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.progress-card-header .score-label {
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+.progress-card-header strong {
+    font-size: 0.85rem;
+    color: var(--text-primary);
+}
+
+.progress-bar-container-large {
+    height: 6px;
+    background-color: rgba(255, 255, 255, 0.06);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-bar-large {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.4s ease-out;
+}
+
+/* Custom bar coloring gradients */
+.green-bar {
+    background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+}
+
+.cyan-bar {
+    background: linear-gradient(90deg, #06b6d4 0%, #0891b2 100%);
+}
+
+.blue-bar {
+    background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.yellow-bar {
+    background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+}
+
+.purple-bar {
+    background: linear-gradient(90deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+.twin-composite-metric-large {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-glass);
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.twin-composite-metric-large h2 {
+    font-family: var(--font-header);
+    font-size: 1.4rem;
+    color: var(--accent-green);
+    margin: 0;
+    text-shadow: 0 0 10px rgba(0, 255, 135, 0.2);
+}
+
+.twin-analysis-narration {
+    background-color: rgba(0, 180, 255, 0.02);
+    border: 1px solid rgba(0, 180, 255, 0.1);
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+}
+
+.twin-analysis-narration h4 {
+    font-family: var(--font-header);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent-blue);
+    margin-bottom: 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.twin-analysis-narration p {
+    font-size: 0.76rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    margin: 0;
+}
+
+.twin-eligibility-summary h4 {
+    font-family: var(--font-header);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.offers-grid-small {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+}
+
+.offer-mini-card {
+    background-color: rgba(255, 255, 255, 0.01);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    padding: 0.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.offer-mini-card span {
+    font-size: 0.6rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.offer-mini-card strong {
+    font-size: 0.85rem;
+    color: var(--accent-green);
+}
+
+.product-selector-twin-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background-color: rgba(255, 255, 255, 0.01);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.twin-product-select {
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-glass);
+    color: #ffffff;
+    font-family: var(--font-header);
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.twin-product-select:hover {
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.twin-product-select option {
+    background-color: #0f1624;
+    color: #ffffff;
 }

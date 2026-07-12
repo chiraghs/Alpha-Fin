@@ -161,75 +161,192 @@
                         <h3>>30% <span class="badge">Target</span></h3>
                     </div>
                 </div>
+                <!-- NAVIGATION TABS -->
+                <div class="rm-nav-tabs">
+                    <button id="btnTabLeads" class="nav-tab-btn active" onclick="switchRMView('leads')">
+                        <i class="fa-solid fa-list-check"></i> Prioritized Leads & Outreach
+                    </button>
+                    <button id="btnTabPortfolio" class="nav-tab-btn" onclick="switchRMView('portfolio')">
+                        <i class="fa-solid fa-users-gear"></i> Customer Twin Portfolio
+                    </button>
+                </div>
 
-                <!-- A/B TESTING PERFORMANCE CARD -->
-                <div class="performance-card">
-                    <div class="card-header">
-                        <h3><i class="fa-solid fa-square-poll-vertical"></i> Causal Inflow: A/B Campaign Lift</h3>
-                        <span class="refresh-indicator"><i class="fa-solid fa-calculator"></i> Real-time Impact Assessment</span>
+                <!-- TAB 1: LEADS & OUTREACH HUB -->
+                <div id="rmViewLeads" class="tab-pane-content">
+                    <!-- A/B TESTING PERFORMANCE CARD -->
+                    <div class="performance-card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-square-poll-vertical"></i> Campaign Efficacy & Conversion Lift</h3>
+                            <span class="refresh-indicator"><i class="fa-solid fa-calculator"></i> Real-time Impact Assessment</span>
+                        </div>
+                        <div class="perf-metrics">
+                            <div class="perf-metric-group treated-group">
+                                <span class="grp-label"><i class="fa-solid fa-wand-magic-sparkles"></i> Treated (AI Assist)</span>
+                                <div class="grp-val-line">
+                                    <h4 id="perfTreatedRate">0.0%</h4>
+                                    <span class="grp-fraction" id="perfTreatedFraction">(0/0 Conv)</span>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar green-bar" id="perfTreatedProgress" style="width: 0%;"></div></div>
+                            </div>
+                            <div class="perf-metric-group control-group">
+                                <span class="grp-label"><i class="fa-solid fa-envelope-open-text"></i> Control (Spam)</span>
+                                <div class="grp-val-line">
+                                    <h4 id="perfControlRate">0.0%</h4>
+                                    <span class="grp-fraction" id="perfControlFraction">(0/0 Conv)</span>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar grey-bar" id="perfControlProgress" style="width: 0%;"></div></div>
+                            </div>
+                            <div class="perf-metric-group lift-group">
+                                <span class="grp-label">Conversion Lift</span>
+                                <h4 id="perfLiftRate">+0.0%</h4>
+                                <span class="lift-badge" id="perfLiftStatus">Target Met</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="perf-metrics">
-                        <div class="perf-metric-group treated-group">
-                            <span class="grp-label"><i class="fa-solid fa-wand-magic-sparkles"></i> Treated (AI Assist)</span>
-                            <div class="grp-val-line">
-                                <h4 id="perfTreatedRate">0.0%</h4>
-                                <span class="grp-fraction" id="perfTreatedFraction">(0/0 Conv)</span>
+
+                    <!-- LEAD BOARD TABLE -->
+                    <div class="leads-card">
+                        <div class="card-header flex-header">
+                            <h3><i class="fa-solid fa-list-check"></i> Prioritized Leads</h3>
+                            <div class="threshold-control">
+                                <label for="thresholdSlider">Min Lead Score: <strong id="thresholdLabel">70%</strong></label>
+                                <input type="range" id="thresholdSlider" min="35" max="95" value="70" step="5" class="threshold-slider" oninput="changeThreshold(this.value)">
                             </div>
-                            <div class="progress-bar-container"><div class="progress-bar green-bar" id="perfTreatedProgress" style="width: 0%;"></div></div>
                         </div>
-                        <div class="perf-metric-group control-group">
-                            <span class="grp-label"><i class="fa-solid fa-envelope-open-text"></i> Control (Spam)</span>
-                            <div class="grp-val-line">
-                                <h4 id="perfControlRate">0.0%</h4>
-                                <span class="grp-fraction" id="perfControlFraction">(0/0 Conv)</span>
-                            </div>
-                            <div class="progress-bar-container"><div class="progress-bar grey-bar" id="perfControlProgress" style="width: 0%;"></div></div>
-                        </div>
-                        <div class="perf-metric-group lift-group">
-                            <span class="grp-label">Conversion Lift</span>
-                            <h4 id="perfLiftRate">+0.0%</h4>
-                            <span class="lift-badge" id="perfLiftStatus">Target Met</span>
+                        <div class="table-responsive">
+                            <table class="leads-table">
+                                <thead>
+                                    <tr>
+                                        <th>Customer Name</th>
+                                        <th>Target Product</th>
+                                        <th>Disposable Income</th>
+                                        <th>Credit Score</th>
+                                        <th>Propensity</th>
+                                        <th>Cohort</th>
+                                        <th>Eligible Limit</th>
+                                        <th>Outreach</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="leadsTableBody">
+                                    <!-- Loaded dynamically -->
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- LEAD BOARD TABLE -->
-                <div class="leads-card">
-                    <div class="card-header flex-header">
-                        <h3><i class="fa-solid fa-list-check"></i> Prioritized Leads</h3>
-                        <div class="threshold-control">
-                            <label for="thresholdSlider">Min Lead Score: <strong id="thresholdLabel">70%</strong></label>
-                            <input type="range" id="thresholdSlider" min="35" max="95" value="70" step="5" class="threshold-slider" oninput="changeThreshold(this.value)">
-                        </div>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="leads-table">
-                            <thead>
-                                <tr>
-                                    <th>Customer Name</th>
-                                    <th>Target Product</th>
-                                    <th>Disposable Income</th>
-                                    <th>Credit Score</th>
-                                    <th>Propensity</th>
-                                    <th>Cohort</th>
-                                    <th>Eligible Limit</th>
-                                    <th>Outreach</th>
-                                </tr>
-                            </thead>
-                            <tbody id="leadsTableBody">
+                <!-- TAB 2: BEHAVIORAL TWIN PORTFOLIO HUB -->
+                <div id="rmViewPortfolio" class="tab-pane-content hidden">
+                    <div class="twin-portfolio-layout">
+                        <!-- Left Sidebar: Customer List selector -->
+                        <div class="portfolio-sidebar">
+                            <h4>Customer Profiles</h4>
+                            <div id="portfolioCustomerList" class="portfolio-list">
                                 <!-- Loaded dynamically -->
-                            </tbody>
-                        </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Right Detail: Deep twin profile display -->
+                        <div class="portfolio-detail-card">
+                            <div id="twinDetailEmpty" class="detail-empty-state">
+                                <i class="fa-solid fa-users-gear"></i>
+                                <p>Select a customer from the left list to inspect their detailed Behavioral Financial Twin scorecard, explainable rating logs, and cross-selling loan limits.</p>
+                            </div>
+                            
+                            <div id="twinDetailContent" class="detail-content hidden">
+                                <div class="detail-customer-header">
+                                    <div>
+                                        <h3 id="twinDetailName">Vikram Iyer</h3>
+                                        <span id="twinDetailAccNum" class="detail-acc-label">A/C: 9876543210</span>
+                                    </div>
+                                    <span id="twinDetailRisk" class="badge">Low Risk</span>
+                                </div>
+                                <hr class="divider">
+                                
+                                <div class="product-selector-twin-wrapper">
+                                    <label for="twinProductSelector">Inspect Product Twin: </label>
+                                    <select id="twinProductSelector" class="twin-product-select" onchange="renderSelectedTwinProduct()">
+                                        <option value="Auto Loan">🚗 Auto Loan</option>
+                                        <option value="Home Loan">🏠 Home Loan</option>
+                                        <option value="Personal Loan">💰 Personal Loan</option>
+                                        <option value="Mortgage Loan">🏢 Mortgage Loan</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="twin-grid-large">
+                                    <div class="twin-progress-card">
+                                        <div class="progress-card-header">
+                                            <span class="score-label">Repayment Capacity</span>
+                                            <strong id="twinDetailRepaymentVal">0.0%</strong>
+                                        </div>
+                                        <div class="progress-bar-container-large"><div class="progress-bar-large green-bar" id="twinDetailRepaymentProgress" style="width: 0%;"></div></div>
+                                    </div>
+                                    <div class="twin-progress-card">
+                                        <div class="progress-card-header">
+                                            <span class="score-label">Intent Score (GBDT)</span>
+                                            <strong id="twinDetailIntentVal">0.0</strong>
+                                        </div>
+                                        <div class="progress-bar-container-large"><div class="progress-bar-large cyan-bar" id="twinDetailIntentProgress" style="width: 0%;"></div></div>
+                                    </div>
+                                    <div class="twin-progress-card">
+                                        <div class="progress-card-header">
+                                            <span class="score-label">Financial Discipline</span>
+                                            <strong id="twinDetailDisciplineVal">0.0</strong>
+                                        </div>
+                                        <div class="progress-bar-container-large"><div class="progress-bar-large blue-bar" id="twinDetailDisciplineProgress" style="width: 0%;"></div></div>
+                                    </div>
+                                    <div class="twin-progress-card">
+                                        <div class="progress-card-header">
+                                            <span class="score-label">Spending Stability</span>
+                                            <strong id="twinDetailStabilityVal">0.0</strong>
+                                        </div>
+                                        <div class="progress-bar-container-large"><div class="progress-bar-large green-bar" id="twinDetailStabilityProgress" style="width: 0%;"></div></div>
+                                    </div>
+                                    <div class="twin-progress-card">
+                                        <div class="progress-card-header">
+                                            <span class="score-label">Income Confidence</span>
+                                            <strong id="twinDetailConfidenceVal">0.0</strong>
+                                        </div>
+                                        <div class="progress-bar-container-large"><div class="progress-bar-large yellow-bar" id="twinDetailConfidenceProgress" style="width: 0%;"></div></div>
+                                    </div>
+                                    <div class="twin-progress-card">
+                                        <div class="progress-card-header">
+                                            <span class="score-label">Offer Acceptance</span>
+                                            <strong id="twinDetailAcceptanceVal">0.0%</strong>
+                                        </div>
+                                        <div class="progress-bar-container-large"><div class="progress-bar-large purple-bar" id="twinDetailAcceptanceProgress" style="width: 0%;"></div></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="twin-composite-metric-large">
+                                    <span>Weighted Lead Score:</span>
+                                    <h2 id="twinDetailLeadScore">0.0%</h2>
+                                </div>
+                                
+                                <div class="twin-analysis-narration">
+                                    <h4><i class="fa-solid fa-brain"></i> Explainable AI Narrative Profile</h4>
+                                    <p id="twinDetailNarrative">Loading analytical profile narrative...</p>
+                                </div>
+                                
+                                <div class="twin-eligibility-summary">
+                                    <h4><i class="fa-solid fa-circle-check"></i> Eligible Loan Products & Underwriting Limits</h4>
+                                    <div class="offers-grid-small" id="twinDetailOffers">
+                                        <!-- Loaded dynamically -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- AI OUTREACH DRAWER (Appears when Outreach is clicked) -->
+                <!-- OUTREACH CAMPAIGN MODAL DIALOG -->
                 <div id="outreachDrawer" class="outreach-drawer hidden">
-                    <div class="drawer-header">
-                        <h3><i class="fa-solid fa-wand-magic-sparkles"></i> AI Outreach Copy Generator</h3>
-                        <button class="btn-close-drawer" onclick="closeOutreachDrawer()"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
-                    <div class="drawer-content">
+                    <div class="outreach-modal-card">
+                        <div class="drawer-header">
+                            <h3><i class="fa-solid fa-paper-plane"></i> Outreach Campaign</h3>
+                            <button class="btn-close-drawer" onclick="closeOutreachDrawer()"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <div class="drawer-content">
                         <div class="lead-context-summary">
                             <p>Generating campaign outreach for <strong id="outreachCustomerName">Aarav Mehta</strong> for a <strong id="outreachLoanType">Auto Loan</strong> of up to <strong id="outreachAmount">₹0</strong>.</p>
                             <div id="outreachControlWarning" class="control-warning-banner hidden">
@@ -312,6 +429,7 @@
                         </div>
                     </div>
                 </div>
+            </div>
             </section>
         </main>
     </div>

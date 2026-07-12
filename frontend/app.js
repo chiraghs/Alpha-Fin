@@ -497,3 +497,206 @@ async function markLeadStatus(newStatus) {
         showToast("Error updating lead status", true);
     }
 }
+
+// ==========================================
+// VIEW SWITCHER FOR RELATIONSHIP MANAGER TABS
+// ==========================================
+function switchRMView(view) {
+    const btnLeads = document.getElementById("btnTabLeads");
+    const btnPortfolio = document.getElementById("btnTabPortfolio");
+    const paneLeads = document.getElementById("rmViewLeads");
+    const panePortfolio = document.getElementById("rmViewPortfolio");
+
+    if (view === 'leads') {
+        btnLeads.classList.add("active");
+        btnPortfolio.classList.remove("active");
+        paneLeads.classList.remove("hidden");
+        panePortfolio.classList.add("hidden");
+    } else if (view === 'portfolio') {
+        btnPortfolio.classList.add("active");
+        btnLeads.classList.remove("active");
+        panePortfolio.classList.remove("hidden");
+        paneLeads.classList.add("hidden");
+        loadPortfolioCustomers();
+    }
+}
+
+// Cache variables for customer twin details
+let portfolioCustomers = [];
+let selectedTwinProfileData = null;
+
+// FETCH ALL CUSTOMERS AND POPULATE PORTFOLIO SIDEBAR
+async function loadPortfolioCustomers() {
+    const listContainer = document.getElementById("portfolioCustomerList");
+    listContainer.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 1.5rem;"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>`;
+
+    try {
+        const res = await fetch(`${API_BASE}/customers`);
+        if (!res.ok) throw new Error("Failed to load portfolio customers");
+        
+        portfolioCustomers = await res.json();
+        listContainer.innerHTML = "";
+
+        if (portfolioCustomers.length === 0) {
+            listContainer.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 1rem; font-size: 0.75rem;">No customer records found.</div>`;
+            return;
+        }
+
+        portfolioCustomers.forEach(cust => {
+            const item = document.createElement("div");
+            item.className = "portfolio-cust-item";
+            item.id = `port-cust-${cust.id}`;
+            item.onclick = () => selectPortfolioCustomer(cust.id);
+            
+            item.innerHTML = `
+                <strong>${cust.name}</strong>
+                <span>Score: ${cust.credit_score} | ₹${(cust.gross_monthly_income).toLocaleString('en-IN', { maximumFractionDigits: 0 })}/mo</span>
+            `;
+            listContainer.appendChild(item);
+        });
+
+        // Auto-select first customer if none is active
+        if (portfolioCustomers.length > 0 && !selectedTwinProfileData) {
+            selectPortfolioCustomer(portfolioCustomers[0].id);
+        }
+    } catch (err) {
+        console.error("Error loading portfolio customers:", err);
+        listContainer.innerHTML = `<div style="text-align: center; color: var(--accent-red); padding: 1rem; font-size: 0.75rem;">Error loading list.</div>`;
+    }
+}
+
+// FETCH INDIVIDUAL TWIN SCORE DATA AND RENDER
+async function selectPortfolioCustomer(customerId) {
+    // Toggle active classes in list sidebar
+    document.querySelectorAll(".portfolio-cust-item").forEach(item => {
+        item.classList.remove("active");
+    });
+    const selectedItem = document.getElementById(`port-cust-${customerId}`);
+    if (selectedItem) selectedItem.classList.add("active");
+
+    const emptyState = document.getElementById("twinDetailEmpty");
+    const contentArea = document.getElementById("twinDetailContent");
+
+    try {
+        const res = await fetch(`${API_BASE}/customers/${customerId}/twin`);
+        if (!res.ok) throw new Error("Failed to load customer twin score");
+        
+        selectedTwinProfileData = await res.json();
+        
+        // Hide empty state, show content area
+        emptyState.classList.add("hidden");
+        contentArea.classList.remove("hidden");
+
+        // Set static customer header details
+        document.getElementById("twinDetailName").textContent = selectedTwinProfileData.name;
+        document.getElementById("twinDetailAccNum").textContent = `A/C: ${selectedTwinProfileData.account_number}`;
+
+        // Populate twin product values based on the dropdown selector
+        renderSelectedTwinProduct();
+    } catch (err) {
+        console.error("Error rendering portfolio twin detail:", err);
+        showToast("Error retrieving detailed twin score", true);
+    }
+}
+
+// COMPUTE AND DISPLAY SCORES FOR THE SELECTED TARGET PRODUCT TWIN
+function renderSelectedTwinProduct() {
+    if (!selectedTwinProfileData) return;
+
+    const selectedProduct = document.getElementById("twinProductSelector").value;
+    const twin = selectedTwinProfileData.twins[selectedProduct];
+
+    if (!twin) return;
+
+    // 1. Repayment Capacity Score
+    const repaymentVal = Math.round(twin.repayment_capacity_score);
+    document.getElementById("twinDetailRepaymentVal").textContent = `${repaymentVal}%`;
+    document.getElementById("twinDetailRepaymentProgress").style.width = `${repaymentVal}%`;
+
+    // 2. Intent Score
+    const intentVal = Math.round(twin.intent_score);
+    document.getElementById("twinDetailIntentVal").textContent = `${intentVal}/100`;
+    document.getElementById("twinDetailIntentProgress").style.width = `${intentVal}%`;
+
+    // 3. Financial Discipline
+    const disciplineVal = Math.round(twin.discipline_score);
+    document.getElementById("twinDetailDisciplineVal").textContent = `${disciplineVal}/100`;
+    document.getElementById("twinDetailDisciplineProgress").style.width = `${disciplineVal}%`;
+
+    // 4. Spending Stability
+    const stabilityVal = Math.round(twin.spending_stability_score);
+    document.getElementById("twinDetailStabilityVal").textContent = `${stabilityVal}/100`;
+    document.getElementById("twinDetailStabilityProgress").style.width = `${stabilityVal}%`;
+
+    // 5. Income Confidence
+    const confidenceVal = Math.round(twin.income_confidence_score);
+    document.getElementById("twinDetailConfidenceVal").textContent = `${confidenceVal}/100`;
+    document.getElementById("twinDetailConfidenceProgress").style.width = `${confidenceVal}%`;
+
+    // 6. Offer Acceptance
+    const acceptanceVal = Math.round(twin.offer_acceptance_probability * 100);
+    document.getElementById("twinDetailAcceptanceVal").textContent = `${acceptanceVal}%`;
+    document.getElementById("twinDetailAcceptanceProgress").style.width = `${acceptanceVal}%`;
+
+    // Composite Lead Score
+    const leadScorePct = (twin.composite_lead_score * 100).toFixed(1);
+    document.getElementById("twinDetailLeadScore").textContent = `${leadScorePct}%`;
+
+    // Risk Badge
+    const riskBadge = document.getElementById("twinDetailRisk");
+    const tier = twin.risk_evaluation.risk_tier;
+    riskBadge.textContent = `${tier} Risk`;
+    riskBadge.className = "badge"; // Reset classes
+    if (tier === "Elite" || tier === "Low") {
+        riskBadge.style.backgroundColor = "rgba(0, 255, 135, 0.1)";
+        riskBadge.style.color = "var(--accent-green)";
+        riskBadge.style.border = "1px solid var(--accent-green)";
+    } else if (tier === "Medium") {
+        riskBadge.style.backgroundColor = "rgba(255, 179, 0, 0.1)";
+        riskBadge.style.color = "var(--accent-amber)";
+        riskBadge.style.border = "1px solid var(--accent-amber)";
+    } else {
+        riskBadge.style.backgroundColor = "rgba(255, 59, 48, 0.1)";
+        riskBadge.style.color = "var(--accent-red)";
+        riskBadge.style.border = "1px solid var(--accent-red)";
+    }
+
+    // Dynamic AI Narrative Explanation
+    const explanationEl = document.getElementById("twinDetailNarrative");
+    const netHeadroom = twin.repayment_capacity_score.toFixed(0);
+    const intentStatus = twin.intent_score > 60 ? "highly active digital browsing signals" : "moderate or passive digital interest";
+    
+    let narrative = `This customer displays a **Repayment Capacity Score of ${netHeadroom}%**, signifying healthy cash headroom after debt obligations. `;
+    narrative += `Our GBDT Intent engine registers **${intentStatus}** for ${selectedProduct} limits. `;
+    if (twin.discipline_score < 100) {
+        narrative += `Note: Statement check bounces or late fees slightly affected their Financial Discipline score (${twin.discipline_score}/100). `;
+    } else {
+        narrative += `Financial discipline is pristine with zero statement alerts. `;
+    }
+    narrative += `Overall, they qualify for targeted outreach with a lead score of **${leadScorePct}%** under our campaign cohort.`;
+    
+    explanationEl.innerHTML = narrative;
+
+    // Load Mini Limits Checklist
+    const offersContainer = document.getElementById("twinDetailOffers");
+    offersContainer.innerHTML = "";
+    
+    const limitAmt = twin.risk_evaluation.max_eligible_limit;
+    const formatLimit = limitAmt.toLocaleString('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
+    
+    const miniCard = document.createElement("div");
+    miniCard.className = "offer-mini-card";
+    miniCard.innerHTML = `
+        <span>Target Eligible Limit</span>
+        <strong>${formatLimit}</strong>
+    `;
+    offersContainer.appendChild(miniCard);
+
+    const foirCard = document.createElement("div");
+    foirCard.className = "offer-mini-card";
+    foirCard.innerHTML = `
+        <span>Debt Headroom (FOIR)</span>
+        <strong>${(twin.risk_evaluation.foir_limit * 100).toFixed(0)}% Limit</strong>
+    `;
+    offersContainer.appendChild(foirCard);
+}
