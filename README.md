@@ -4,6 +4,8 @@
 >
 > **Tag Line**: *Real-time transaction intelligence triggering hyper-personalized retail lending.*
 >
+> **Live Demo Website**: 🚀 **[https://chiraghs.github.io/Alpha-Fin/](https://chiraghs.github.io/Alpha-Fin/)** (Runs 100% in-browser Standalone Mode)
+>
 > **Status**: 🟢 **Build Passing** | 🧪 **Tests Green** | 🚀 **Production-Ready**
 
 ---
@@ -41,46 +43,50 @@ To support high-scale deployments, Prospect Assist AI is designed for cloud-nati
 * **Campaign Efficacy & Conversion Lift Dashboard**: Segmenting prospects into Treated and Control cohorts allows the bank to isolate outreach conversion lift directly from database tables, verifying that the solution exceeds the target conversion rates.
 ```mermaid
 graph LR
-    subgraph Sources [1. Data Sources]
-        CB[Core Banking]
-        IB[Internet Banking]
-        UPI[UPI Transactions]
-        Bureau[Credit Bureau]
-        CRM[CRM Data]
+    subgraph Sources [1. Data Ingestion Sources]
+        CB[Core Banking Ledger]
+        IB[Internet Clickstream Logs]
+        UPI[UPI Real-time Feeds]
+        Bureau[External Credit Bureau]
+        CRM[Bank CRM History]
     end
 
-    subgraph AppEngine [2. Processing & ML Models Layer]
-        Lake[(Data Lake)]
-        FE[Feature Engineering]
+    subgraph AppEngine [2. Processing & Models Core]
+        Lake[(Data Lake Processing)]
+        FE[Feature Engineering & Timestamps]
         
-        subgraph MLModels [Multi-Model Analytics Core]
+        subgraph MLModels [Decision Intelligence Models]
             Income[Model 1: Income Estimation]
             
             subgraph IntentEngine [Intent Core]
                 Graph[Graph Clickstream Matching]
                 GBDT[GBDT Propensity Scorer]
-                Intent[Model 2: Intent Prediction]
+                Velocity[Intent Velocity Tracker]
             end
             
-            Risk[Model 3: Risk & Underwriting]
+            LifeEvents[Life Event Detection Engine]
+            RiskModel[Model 3: Risk & Underwriting]
             Conversion[Model 4: Conversion ML]
-            History[Model 5: Historical Conversion ML]
+            History[Model 5: Historical Conversion]
         end
         
-        Ranking[Lead Ranking & Threshold Filter >70%]
+        Pruning{Risk Underwriting Gate Filter}
+        LRI[Loan Readiness Index Calculator]
+        Ranking[Lead Ranker & Adjustable Slider Filter]
     end
 
-    subgraph Storage [3. Database Layer]
-        RDS[(AWS RDS PostgreSQL)]
+    subgraph Storage [3. Database Storage Layer]
+        RDS[(AWS RDS / Local SQLite)]
     end
 
     subgraph Presentation [4. Presentation Layer]
         UI[Relationship Manager Dashboard UI]
-        ABDashboard[Campaign Efficacy & Conversion Lift Dashboard]
-        TwinAnalyzer[Behavioral Financial Twin Portfolio Analyzer]
+        ABDashboard[Campaign Efficacy & Conversion Lift]
+        TwinAnalyzer[Behavioral Twin Portfolio Drilldown]
+        Outreach[AI Personalized Outreach Generator]
     end
 
-    %% Data Flow
+    %% Data Inflows
     CB --> Lake
     IB --> Lake
     UPI --> Lake
@@ -90,23 +96,34 @@ graph LR
     Lake --> FE
     FE --> Income
     FE --> Graph
-    FE --> Risk
-    FE --> Conversion
+    FE --> RiskModel
     FE --> History
+    FE --> LifeEvents
+    FE --> Velocity
+    FE --> Conversion
     
     Graph --> GBDT
-    GBDT --> Intent
     
-    Income --> Conversion
-    Intent --> Conversion
-    Risk --> Conversion
-    History --> Conversion
+    %% All Models Feed Into Risk Underwriting Gate Filter
+    Income --> Pruning
+    GBDT --> Pruning
+    Velocity --> Pruning
+    LifeEvents --> Pruning
+    RiskModel --> Pruning
+    Conversion --> Pruning
+    History --> Pruning
     
-    Conversion --> Ranking
+    Pruning -->|Pass / Low-Medium Risk| LRI
+    Pruning -->|Block / High Risk Subprime| Trash[Pruned Lead / Removed]
+    
+    LRI --> Ranking
     Ranking --> RDS
+    
+    %% UI Presentation
     RDS --> UI
     RDS --> ABDashboard
     RDS --> TwinAnalyzer
+    RDS --> Outreach
 ```
 
 The codebase is split into a robust FastAPI python backend and a responsive dark-themed frontend:
@@ -152,83 +169,146 @@ This will automatically start:
 
 ---
 
-## 🧪 Running Unit Tests
+## 🔬 Deep Dive: Core Algorithms, Models & Decision Intelligence
 
-To verify that the credit scoring engines and calculations are mathematically sound, run the `pytest` suite from the repository root:
+Prospect Assist AI functions as a complete **AI Decision Intelligence Engine**, shifting the bank's retail lending from static eligibility scoring to dynamic timeline readiness matching.
 
-```bash
-PYTHONPATH=backend ./venv/bin/pytest backend/tests/
+### 1. Model Data Flow & Ingestion Processing Pipeline
+The diagram below shows how transactional raw data lakes are engineered into features, routed through strict Risk underwriter gates, scored via LRI product formulas, and routed to relationship managers:
+
+```
+[Core Banking | Internet Banking | UPI Transactions | Credit Bureau | CRM Data]
+                                │
+                          ───────────────
+                             Data Lake
+                          ───────────────
+                                │
+                       Feature Engineering
+                                │
+        ┌───────────────────────┼───────────────────────┐
+        │                       │                       │
+  ┌───────────┐         [Graph Sequence]          ┌───────────┐
+  │  Model 1: │                 │                 │  Model 3: │
+  │   Income  │        [GBDT Propensity]          │   Risk    │
+  │ Estimation│                 │                 │Underwritg │
+  └─────┬─────┘         ┌───────┴───────┐         └─────┬─────┘
+        │               │   Model 2:    │               │
+        │               │ Intent Engine │               │
+        └───────┬───────┘               └───────┬───────┘
+                │                               │
+                └───────────────┬───────────────┘
+                                │
+                         ┌───────────────┐        ┌───────────┐
+                         │   Model 4:    │ ◄───── │  Model 5: │
+                         │ Conversion ML │        │ Historical│
+                         └───────────────┘        └───────────┘
+                                 │
+                           Lead Ranking 
+                     (Filter: Threshold >70%)
+                                 │
+                   ┌─────────────┴─────────────┐
+                   │                           │
+          ┌────────┴────────┐         ┌────────┴────────┐
+          │   Treated Cohort│         │   Control Cohort│
+          └────────┬────────┘         └────────┬────────┘
+                   │                           │
+         ┌─────────┴───────────────────────────┴─────────┐
+         │       Relationship Manager Lead Board         │
+         ├───────────────────────────────────────────────┤
+         │  [ Leads & Campaign ]  [ Portfolio Analyzer ] │
+         └───────────────────────────────────────────────┘
 ```
 
 ---
 
-## 🔬 Core Algorithms & Calculations
+### 2. Multi-Model ML Pipeline Specification
 
-### 1. LightGBM GBDT Decision Tree Forest Simulator
-Model 2 (Intent Prediction Model) uses a simulated **Gradient Boosted Decision Trees (GBDT)** booster to estimate user purchase intent. Clicks, calculator uses, and transactional triggers are processed into log-odds margins ($z$), which are summed and scaled through a **Sigmoid Activation Function**:
+Instead of a single credit score, Prospect Assist AI coordinates **five specialized ML and cash flow models**:
 
-$$\text{Intent Probability} = \sigma(z) = \frac{1}{1 + e^{-z}}$$
+#### 📈 Model 1: Cash Flow Income Estimation Model
+* **Purpose**: Calculates actual disposable cash flows without manual paper statements upload.
+* **Math formulation**:
+  $$\text{Actual Disposable Income} = \text{Monthly Inflows} - \sum (\text{Existing EMIs} + \text{Active SIPs} + \text{Fixed Utilities})$$
+* **Output**: Estimates true disposable capacity to support prudent underwriting.
 
-The ensemble consists of three decision trees:
-* **Tree 1: Direct Interest Splitting**:
-  * If `apply_clicks > 0`:
-    * If `transaction_triggers > 0` (showroom/decor spends): $z \leftarrow z + 1.8$ (Hot combination)
-    * Else: $z \leftarrow z + 1.2$
-  * Else:
-    * If `transaction_triggers > 0`: $z \leftarrow z + 0.8$
-* **Tree 2: Exploration Rigor**:
-  * If `has_high_intent_path == True` (matches Graph Sequence): $z \leftarrow z + 1.5$ (Clickstream centrality boost)
-  * Else:
-    * If `calculator_use > 0`:
-      * $z \leftarrow z + 0.6$
-      * If `views > 2`: $z \leftarrow z + 0.4$
-* **Tree 3: Risk & Score Profiling**:
-  * If `credit_score >= 750`: $z \leftarrow z + 0.4$
-  * If `credit_score < 600`: $z \leftarrow z - 0.5$
+#### 🎯 Model 2: Intent Prediction Model (GBDT Booster)
+* **Purpose**: Evaluates immediate borrowing intent from digital actions.
+* **GBDT Forest Ensemble splits**:
+  * **Tree 1 (Direct Clicks)**: Splitting on `apply_clicks` and transactional showroom tags (HPCL fuel, showroom spends). Boosts +1.8 for hot combination, +1.2/0.8 for partial hits.
+  * **Tree 2 (Exploration Rigor)**: Boosts **+1.5 log-odds** if the sequential app transition pattern matches the target graph sequence:
+    $$\text{VIEW} \xrightarrow{\text{app click}} \text{CALCULATE EMI} \xrightarrow{\text{app click}} \text{CLICK APPLY}$$
+    Otherwise scales with calculator usage.
+  * **Tree 3 (Risk Profiling)**: Shifts log-odds (+0.4 for credit score $\ge 750$, -0.5 for subprime $< 600$).
+* **Sigmoid Activation**: Converts raw summed margins ($z$) into a scaled probability:
+  $$\text{Intent Score} = \sigma(z) \times 100 = \frac{100}{1 + e^{-z}}$$
 
-### 2. Graph Clickstream Sequence Transition
-Taps on the mobile app are parsed as a directed state-space transition graph. Sequences matching the target sequence:
+#### 🛡️ Model 3: Underwriting Risk Filter Gate
+* **Purpose**: Strict gate block filtering subprime default risks.
+* **Gate Rules**: If `credit_score < 600` OR `pd_risk >= 0.50` OR `late_charges_count >= 2`, they are marked **High Risk (Subprime)** and are deleted or skipped from active leads.
 
-$$\text{VIEW} \xrightarrow{\text{app click}} \text{CALCULATE EMI} \xrightarrow{\text{app click}} \text{CLICK APPLY}$$
+#### 💸 Model 4: Blended Campaign Conversion Model
+* **Purpose**: Predicts probability that a generated lead will accept the outreach campaign.
+* **Weighted Blend**: Integrates GBDT intent conversion propensity with historical conversion performance:
+  $$P_{\text{conversion}} = 0.70 \times P_{\text{GBDT}} + 0.30 \times P_{\text{history}}$$
 
-satisfy `has_high_intent_path == True` and receive the **+1.5 log-odds boost** in GBDT Tree 2, highlighting trajectory intent.
+#### 📈 Model 5: Historical Conversion Propensity Model
+* **Purpose**: Evaluates prior loan repayment behaviors and campaign conversion status flags.
+* **Acceptance Rate calculation**:
+  $$R_{\text{accept}} = \frac{N_{\text{converted}}}{N_{\text{total\_leads}}}$$
+* **Log-Odds Conversion Scoring**:
+  $$z_{\text{hist}} = 2.0 \times (R_{\text{accept}} - 0.5) - 0.4 \times N_{\text{missed}} + (0.3 \text{ if } N_{\text{active}} > 0 \text{ and } N_{\text{missed}} = 0 \text{ else } 0)$$
 
-### 3. Dynamic Behavioral Financial Twin Profile
-Prospect Assist AI constructs a **Behavioral Financial Twin** for each customer to support explainable underwriting factors, compiling six dynamic scores (0-100 scale):
-1. **Repayment Capacity Score**: Disposable cash headroom relative to gross inflows:
-   $$\text{Repayment Capacity} = \left( \frac{\text{Actual Disposable Income}}{\text{Total Monthly Inflows}} \right) \times 100$$
-   $$\text{where Actual Disposable Income} = \text{Monthly Inflows} - \sum (\text{EMIs} + \text{SIPs} + \text{Utilities})$$
-2. **Intent Score**: Product-specific score derived from the GBDT Decision Trees.
-3. **Financial Discipline Score**: Penalizes statement bounces and late fees (starts at 100, -25 per charge).
-4. **Spending Stability Score**: Income stability index tracking inflow consistency.
-5. **Income Confidence Score**: Based on recurrence of 90-day salary deposits (3 credits = 95, 2 = 80, 1 = 60).
-6. **Offer Acceptance Probability**: Blends digital GBDT conversion propensity with historical offer acceptance rate and missed repayments (70/30 weighted blend).
+---
 
-### 4. Explainable Weighted Lead Score Formula
-To prioritize prospects, the orchestrator combines the financial twin parameters into a final weighted lead score:
+### 3. Loan Readiness Index (LRI) Formulation
+We prioritizing leads using the multiplicative **Loan Readiness Index (LRI)**. To ensure a single poor dimension doesn't completely zero out the score while maintaining a multiplicative penalty, we use a soft-bounded product:
 
-$$\text{Lead Score} = 0.35 \times \text{Intent} + 0.30 \times \text{Repayment Capacity} + 0.20 \times \text{Financial Stability} + 0.15 \times \text{Customer Relationship}$$
+$$LRI = 100 \times \prod_{i=1}^5 \left( 0.2 + 0.8 \times \frac{\text{Score}_i}{100} \right)$$
 
-* **Financial Stability** is the average of *Financial Discipline* and *Spending Stability*.
-* **Customer Relationship** is mapped based on credit score bands.
-* **Adjustable Filter Threshold**: Defaults to **70%**, but provides an interactive slider on the Relationship Manager Dashboard, allowing the manager to dynamically customize the lead bar (from 35% to 95%) in real-time to fit current branch capacity.
+*Where the 5 component scores are:*
+1. $\text{Score}_1 = \text{Repayment Capacity}$ (Net disposable cash relative to inflows)
+2. $\text{Score}_2 = \text{Intent Score}$ (Digital GBDT intent)
+3. $\text{Score}_3 = \text{Financial Stability}$ (Average of Discipline and spending consistency)
+4. $\text{Score}_4 = \text{Life Event Confidence}$ (Based on detected life triggers, default 50% if none)
+5. $\text{Score}_5 = \text{Relationship Strength}$ (Mapped relationship tenure and credit rating)
 
-### 5. Campaign Efficacy & Conversion Lift Dashboard
-Prospect Assist AI dynamically segments leads into two cohorts to evaluate campaign conversion rate lift:
-* **Treated Cohort (AI-Personalized Outreach)**: Receives hyper-targeted AI-personalized pitches detailing eligible limits.
-* **Control Cohort (Generic Templates)**: Receives standard generic template bank spam.
-RMs log lead outcomes in the UI to refresh conversion rates and the lift percentage ($\text{Conversion Lift} = \text{Treated Rate} - \text{Control Rate}$) in real-time.
+---
 
-### 6. Behavioral Financial Twin Portfolio Analyzer (Phase 5)
-Prospect Assist AI provides an interactive **Customer Twin Portfolio Hub** allowing the Relationship Manager to drill down into the six component scores of any customer:
-* **Granular Drill-Down**: Shows precise metrics (Discipline, Repayment, Stability, Confidence, Intent, Acceptance) per product (Auto, Home, Personal, Mortgage) in a separate tabbed view.
-* **Explainable AI Log**: Displays natural-language reason logs explaining *why* the specific score was assigned, translating transaction/clickstream behaviors into business summaries.
-* **Dynamic Loan Limits**: Calculates the exact eligible limit and FOIR (debt capacity) headroom dynamically.
+### 4. Dynamic Life Event Detection Engine
+We parse transaction narratives and click streams for high-probability life events:
+* **💍 Marriage Planning**: Shopping debits containing wedding keywords (`JEWELLER`, `WEDDING`, `MARRIAGE`, `BANQUET`). Confidence: 90% if transaction found, 40% if only digital click stream views.
+* **🎓 School Fees**: Debit transactions matching `SCHOOL`, `COLLEGE`, `TUITION`, `ACADEMY`. Confidence: 85%.
+* **🚗 Vehicle Upgrade**: Insurance premiums or auto dealer interactions (`MARUTI`, `HYUNDAI`, `MOTORS`, `INSURANCE`). Confidence: 80%.
+* **🏠 Rent Deposit / Home Search**: Security deposit transactions (`NOBROKER`, `DEPOSIT`, `RENTAL`) paired with home loan calculator views. Confidence: 90%.
+* **📈 Promotion / Inflow Surge**: Detects if the latest salary transaction is $\ge 15\%$ higher than the average of past salaries. Confidence: 95%.
 
-### 7. Historical Conversion Propensity Model (Phase 6)
-Prospect Assist AI blends digital intent with historical performance to calculate campaign acceptance likelihood:
-* **Model 5: Historical Conversion ML**: Evaluates the count of prior campaign acceptance logs (`Converted` vs. `Rejected`) and counts active loan repayments (EMI transactions) vs. missed checks bounce fees.
-* **Blended Acceptance Engine**: Blends the GBDT intent conversion propensity with the historical conversion score using a 70/30 weighted formula, reducing conversion errors for high-intent but risky profiles.
+---
+
+### 5. Intent Velocity Tracking
+We track the rate of change of clickstream events to identify hot prospects:
+$$\text{Velocity} = \text{Intent}_{\text{recent 7 days}} - \text{Intent}_{\text{prior 7-14 days}}$$
+If a customer's velocity is $\ge 15\%$ points, they are tagged with a **`⚡ Call Now`** surge status badge on the leads board.
+
+---
+
+### 6. Dynamic Behavioral Financial Twin Profiles
+Rather than assigning a simple, opaque credit score, Prospect Assist AI generates a dynamic **Behavioral Financial Twin** for each customer to support explainable underwriting factors, compiling six component scores (0-100 scale):
+1. **Repayment Capacity**: Disposable cash headroom relative to gross inflows.
+2. **Intent Score**: Product-specific score derived from GBDT decision trees.
+3. **Financial Discipline**: Rates historical repayment stability, penalizing account statement bounces and late fees.
+4. **Spending Stability**: Monitors monthly cash-flow stability.
+5. **Income Confidence**: Measures salary deposit consistency (repetition intervals over a rolling 90-day window).
+6. **Offer Acceptance Probability**: Blends digital GBDT conversion propensity with historical conversion rate and missed repayments.
+
+---
+
+### 7. Comprehensive Feature Matrix
+
+Our core models ingest and engineer features across four distinct categories, drawing design patterns from leading global financial tech models:
+
+* **Transaction Behaviour (Inflow/Outflow Verification)**: Similar to cash flow verification platforms like **Plaid** and statement scoring engines like **Perfios**, we analyze monthly salary stability, average balance averages, and subtract fixed commitments (current EMIs, rent, utilities).
+* **Behavioural Analytics (Intent & Digital Footprint)**: Similar to digital footprint scoring frameworks like **FinBox**, we capture interest calculators, drop-off actions, and comparators to predict acquisition propensity.
+* **Relationship & Underwriting Profiles**: Drawing inspiration from alternative scorecards like **Upstart**, dynamic underwriters like **Zest AI**, and thin-file access networks like **Nova Credit**, we combine external bureau scores with internal historical cheque bounce frequencies and card utilization.
 
 ## 📸 Product Demonstration (UI Screenshots)
 

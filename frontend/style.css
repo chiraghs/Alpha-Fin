@@ -698,6 +698,66 @@ body {
     border: 1px solid rgba(255, 179, 0, 0.25);
 }
 
+.badge-velocity {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    width: fit-content;
+    background: linear-gradient(135deg, rgba(255, 59, 48, 0.2), rgba(255, 179, 0, 0.2));
+    color: #ff6b6b;
+    border: 1px solid rgba(255, 59, 48, 0.4);
+    box-shadow: 0 0 10px rgba(255, 59, 48, 0.2);
+    letter-spacing: 0.5px;
+}
+
+.badge-life-event {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    width: fit-content;
+    background-color: rgba(0, 242, 254, 0.05);
+    color: var(--accent-cyan);
+    border: 1px solid rgba(0, 242, 254, 0.15);
+    margin-top: 4px;
+}
+
+.product-cell-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.readiness-cell-container {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.pulse-fast {
+    animation: pulse-fast-kf 1s infinite alternate ease-in-out;
+}
+
+@keyframes pulse-fast-kf {
+    0% {
+        transform: scale(0.97);
+        opacity: 0.95;
+    }
+    100% {
+        transform: scale(1.03);
+        opacity: 1.0;
+        box-shadow: 0 0 12px rgba(255, 59, 48, 0.4);
+    }
+}
+
 .btn-outreach-trigger {
     background: rgba(0, 242, 254, 0.08);
     border: 1px solid rgba(0, 242, 254, 0.25);
@@ -1637,4 +1697,45 @@ body {
 .twin-product-select option {
     background-color: #0f1624;
     color: #ffffff;
+}
+
+.connection-status-badge {
+    padding: 0.3rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    letter-spacing: 0.5px;
+    border: 1px solid transparent;
+}
+
+.live-connected {
+    background-color: rgba(0, 255, 135, 0.08);
+    color: var(--accent-green);
+    border-color: rgba(0, 255, 135, 0.25);
+    box-shadow: 0 0 10px rgba(0, 255, 135, 0.1);
+}
+
+.standalone-mode {
+    background-color: rgba(255, 179, 0, 0.08);
+    color: var(--accent-amber);
+    border-color: rgba(255, 179, 0, 0.25);
+    box-shadow: 0 0 10px rgba(255, 179, 0, 0.1);
+}
+
+.pulse-dot {
+    font-size: 0.45rem;
+    animation: pulse-dot-kf 1.5s infinite alternate ease-in-out;
+}
+
+@keyframes pulse-dot-kf {
+    0% {
+        opacity: 0.4;
+    }
+    100% {
+        opacity: 1.0;
+    }
 }

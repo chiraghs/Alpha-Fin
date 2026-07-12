@@ -141,9 +141,14 @@
 
             <!-- RIGHT PANEL: RM COMMAND CENTER -->
             <section class="right-panel">
-                <div class="panel-header">
-                    <h2><i class="fa-solid fa-chart-line"></i> Relationship Manager Hub</h2>
-                    <p>Real-time underwriting feed, customer propensity tracking, and AI-driven campaign triggers</p>
+                <div class="panel-header" style="display: flex; justify-content: space-between; align-items: start; width: 100%;">
+                    <div>
+                        <h2><i class="fa-solid fa-chart-line"></i> Relationship Manager Hub</h2>
+                        <p>Real-time underwriting feed, customer propensity tracking, and AI-driven campaign triggers</p>
+                    </div>
+                    <div id="connectionStatusBadge" class="connection-status-badge live-connected" style="margin-top: 4px;">
+                        <i class="fa-solid fa-circle pulse-dot"></i> Live API
+                    </div>
                 </div>
 
                 <!-- Stats summary strip -->
@@ -221,7 +226,7 @@
                                         <th>Target Product</th>
                                         <th>Disposable Income</th>
                                         <th>Credit Score</th>
-                                        <th>Propensity</th>
+                                        <th>Readiness (LRI)</th>
                                         <th>Cohort</th>
                                         <th>Eligible Limit</th>
                                         <th>Outreach</th>
@@ -383,8 +388,11 @@
                                     </div>
                                 </div>
                                 <div class="twin-composite-score">
-                                    <span>Weighted Lead Score:</span>
+                                    <span>Loan Readiness Index (LRI):</span>
                                     <strong id="twinLeadScore">0.0%</strong>
+                                </div>
+                                <div id="outreachTimelineReasons" style="margin-top: 1.25rem; border-top: 1px dashed rgba(255,255,255,0.15); padding-top: 1rem;">
+                                    <!-- Populated dynamically -->
                                 </div>
                             </div>
                         </div>

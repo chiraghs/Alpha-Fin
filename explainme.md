@@ -238,8 +238,9 @@ $$\text{Lead Score} = 0.35 \times \text{Intent} + 0.30 \times \text{Repayment Ca
 * Build a sidebar to list all customer profiles, letting managers drill down into the six component scores of any customer.
 * Integrate explainable natural-language AI narration panels explaining exactly why the score was assigned and highlighting target eligible limits.
 
-### 📅 Phase 6: Extended Conversion Propensity Model ➔ `[x] COMPLETED`
-* Implement Model 5 evaluating previous campaign outcomes (`Converted` / `Rejected`) and active EMIs in statement history.
-* Blend Model 5 historical conversion metrics ($P_{\text{history}}$) with digital GBDT intent conversion metrics ($P_{\text{GBDT}}$) using a 70/30 weighted formula.
-* Expose previous leads logs to the backend endpoints (`get_customer_twin_profile`, `refresh_customer_leads`, etc.).
-* Update the Portfolio Tab explainable AI narratives and add unit verification checks.
+### 📅 Phase 6: AI Decision Intelligence & Loan Readiness Engine (Revised) ➔ `[x] COMPLETED`
+* Implement strict underwriting risk filter gates (Model 3) before qualifying leads.
+* Build the Life Event Detection Engine tracking marriage planning, school fees, vehicle upgrades, rent deposits, and promotion inflow surges.
+* Track Intent Velocity to tag surging leads with a `⚡ Call Now` badge.
+* Implement the Loan Readiness Index (LRI) using a soft-bounded product formula.
+* Render interactive explainable AI timeline checklists on both the Leads Board and Outreach modal.
