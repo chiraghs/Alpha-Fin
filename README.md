@@ -4,6 +4,8 @@
 >
 > **Tag Line**: *Real-time transaction intelligence triggering hyper-personalized retail lending.*
 >
+> **Live Demo Website**: 🚀 **[https://chiraghs.github.io/Alpha-Fin/](https://chiraghs.github.io/Alpha-Fin/)** (Runs 100% in-browser Standalone Mode)
+>
 > **Status**: 🟢 **Build Passing** | 🧪 **Tests Green** | 🚀 **Production-Ready**
 
 ---
