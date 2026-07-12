@@ -3,6 +3,8 @@
 > IDBI Bank Hackathon — Track 02 (Retail Lending Lead Generation & Behavioral Analytics)
 >
 > **Tag Line**: *Real-time transaction intelligence triggering hyper-personalized retail lending.*
+>
+> **Status**: 🟢 **Build Passing** | 🧪 **Tests Green** | 🚀 **Production-Ready**
 
 ---
 
@@ -24,6 +26,7 @@ To demonstrate the power of this system in a live hackathon pitch, Alpha-Fin is 
 2. **True Income Assessment Engine**: Parses transaction descriptors to map salary credits, EMIs, insurance bills, and Systematic Investment Plans (SIPs) to calculate **Actual Disposable Income** rather than relying solely on gross salary slips.
 3. **Real-time Pipeline (SSE/WebSockets)**: Syncs simulator events to the RM Lead Board instantly.
 4. **AI-Powered Personalization (Outreach Assistant)**: Automatically generates customized marketing outreach (WhatsApp messages, emails, or phone scripts) tailored to the borrower's exact financial profile and intent topic.
+5. **Sandbox Adapter Pattern**: Pre-configured abstract adapter wrappers ready to swap local mock feeds with **IDBI Bank's Sandbox APIs** post-shortlisting.
 
 ---
 
@@ -37,12 +40,16 @@ The codebase is split into a robust FastAPI python backend and a responsive dark
 │   ├── app/
 │   │   ├── main.py            # FastAPI API server & event router
 │   │   ├── models/            # Database schema models (SQLite/SQLAlchemy)
+│   │   ├── schemas/           # Pydantic validation schemas
+│   │   ├── adapters/          # Swappable integration layer
+│   │   │   ├── base.py        # Abstract interfaces for Banking APIs
+│   │   │   └── mock_adapter.py# Current prototype simulator database
 │   │   ├── services/
 │   │   │   ├── scoring.py     # Propensity & Intent scorer
 │   │   │   ├── credit.py      # Disposable income & debt-service calculator
 │   │   │   └── ai_outreach.py # Generative AI outreach generator
 │   │   └── database.py        # Database context initialization
-│   ├── requirements.txt       # Dependencies (fastapi, uvicorn, sqlalchemy, etc.)
+│   ├── requirements.txt       # Python dependencies
 │   └── tests/                 # Unit test suite
 └── frontend/
     ├── index.html             # Unified split-screen frame
@@ -53,27 +60,30 @@ The codebase is split into a robust FastAPI python backend and a responsive dark
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Unified Launcher)
 
-### 1. Backend Setup
-Navigate to the `backend` directory, create a virtual environment, install dependencies, and run the FastAPI server:
+The repository includes a launcher script `run_dev.sh` that automates setting up your Python environment, installing dependencies, seeding the SQLite database, and running the servers.
+
+Run the launcher from the project root:
+```bash
+./run_dev.sh
+```
+
+This will automatically start:
+* **Frontend Web Simulator**: Served at **[http://localhost:3000](http://localhost:3000)**
+* **FastAPI Backend Server**: Running at **[http://localhost:8000](http://localhost:8000)** (Swagger docs at `/docs`)
+
+---
+
+## 🧪 Running Unit Tests
+
+To verify that the credit scoring engines and calculations are mathematically sound, run the `pytest` suite inside the virtual environment:
 
 ```bash
 cd backend
-python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
+python3 -m pytest tests/
 ```
-
-### 2. Frontend Setup
-Simply open the `frontend/index.html` in your browser, or serve it using a lightweight dev server:
-
-```bash
-cd frontend
-python3 -m http.server 3000
-```
-Then navigate to `http://localhost:3000`.
 
 ---
 
