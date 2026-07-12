@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alpha-Fin: Split-Screen Hackathon Simulator</title>
+    <title>Prospect Assist AI - Retail Lending Intent Engine</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,7 +20,7 @@
             <div class="logo-area">
                 <i class="fa-solid fa-building-columns brand-icon"></i>
                 <div class="brand-text">
-                    <h1>ALPHA-FIN</h1>
+                    <h1>PROSPECT ASSIST AI</h1>
                     <span>IDBI Innovate 2026 // Track 02</span>
                 </div>
             </div>
@@ -195,9 +195,12 @@
 
                 <!-- LEAD BOARD TABLE -->
                 <div class="leads-card">
-                    <div class="card-header">
-                        <h3><i class="fa-solid fa-list-check"></i> High-Intent Prioritized Leads</h3>
-                        <span class="refresh-indicator" id="refreshIndicator"><i class="fa-solid fa-arrows-rotate"></i> Real-time Sync Active</span>
+                    <div class="card-header flex-header">
+                        <h3><i class="fa-solid fa-list-check"></i> Prioritized Leads</h3>
+                        <div class="threshold-control">
+                            <label for="thresholdSlider">Min Lead Score: <strong id="thresholdLabel">70%</strong></label>
+                            <input type="range" id="thresholdSlider" min="35" max="95" value="70" step="5" class="threshold-slider" oninput="changeThreshold(this.value)">
+                        </div>
                     </div>
                     <div class="table-responsive">
                         <table class="leads-table">
@@ -231,6 +234,41 @@
                             <p>Generating campaign outreach for <strong id="outreachCustomerName">Aarav Mehta</strong> for a <strong id="outreachLoanType">Auto Loan</strong> of up to <strong id="outreachAmount">₹0</strong>.</p>
                             <div id="outreachControlWarning" class="control-warning-banner hidden">
                                 <i class="fa-solid fa-circle-exclamation"></i> <strong>Control Group Case:</strong> This customer is in the Control group. Generating generic pre-approved templates instead of hyper-personalized behavioral AI copy.
+                            </div>
+                            
+                            <!-- Behavioral Financial Twin Dynamic Profile Grid -->
+                            <div id="financialTwinSection" class="financial-twin-section">
+                                <h4><i class="fa-solid fa-dna"></i> Behavioral Financial Twin</h4>
+                                <div class="twin-grid">
+                                    <div class="twin-score-card">
+                                        <span class="score-label">Repayment Capacity</span>
+                                        <strong id="twinRepayment">0.0%</strong>
+                                    </div>
+                                    <div class="twin-score-card">
+                                        <span class="score-label">Intent Score</span>
+                                        <strong id="twinIntent">0.0</strong>
+                                    </div>
+                                    <div class="twin-score-card">
+                                        <span class="score-label">Financial Discipline</span>
+                                        <strong id="twinDiscipline">0.0</strong>
+                                    </div>
+                                    <div class="twin-score-card">
+                                        <span class="score-label">Spending Stability</span>
+                                        <strong id="twinStability">0.0</strong>
+                                    </div>
+                                    <div class="twin-score-card">
+                                        <span class="score-label">Income Confidence</span>
+                                        <strong id="twinIncomeConf">0.0</strong>
+                                    </div>
+                                    <div class="twin-score-card">
+                                        <span class="score-label">Offer Acceptance</span>
+                                        <strong id="twinAcceptance">0.0%</strong>
+                                    </div>
+                                </div>
+                                <div class="twin-composite-score">
+                                    <span>Weighted Lead Score:</span>
+                                    <strong id="twinLeadScore">0.0%</strong>
+                                </div>
                             </div>
                         </div>
                         

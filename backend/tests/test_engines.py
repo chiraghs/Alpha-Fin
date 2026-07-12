@@ -63,25 +63,22 @@ def test_evaluate_propensity_and_intent():
     # Evaluate with baseline transaction (no showroom spend)
     res = evaluate_propensity_and_intent(clickstream, transactions, credit_score=750)
     
-    # Auto Loan GBDT score:
-    # Base: -2.5
-    # Tree 1: apply_clicks > 0, tx_triggers = 0 -> +1.2
-    # Tree 2: has_high_intent_path = True -> +1.5
-    # Tree 3: credit_score >= 750 -> +0.4
-    # Total z = -2.5 + 1.2 + 1.5 + 0.4 = +0.6 -> Sigmoid(0.6) = 0.65 (Warm intent)
-    assert res["Auto Loan"]["propensity_score"] == 0.65
-    assert res["Auto Loan"]["intent_level"] == "Warm"
+    # Auto Loan Behavioral Financial Twin evaluation:
+    # Model 1 (Income): Estimated gross = 82k, disposable = 82k -> Repayment Capacity Score = 100%
+    # Model 2 (Intent): intent_score = 64.6% (using exact GBDT Forest: logit = 0.6)
+    # Model 3 (Risk): pd_risk = 0.047 -> Discipline = 100%, Stability = 50%, composite = 75%
+    # Model 4 (Conversion): logit z = 1.92 -> Sigmoid(1.92) = 0.87 (Conversion Acceptance)
+    # Lead Score = 0.35*64.6 (22.6) + 0.30*100 (30.0) + 0.20*75 (15.0) + 0.15*70 (10.5) = 78.1% -> 0.78 propensity
+    assert res["Auto Loan"]["propensity_score"] == 0.78
+    assert res["Auto Loan"]["intent_level"] == "Hot"
     
     # Add high-value transaction trigger (car dealer)
     transactions.append({"amount": -2000.0, "category": "SHOPPING", "description": "MARUTI SUZUKI SHOWROOM DEBIT", "timestamp": now - timedelta(days=4)})
     
     res_hot = evaluate_propensity_and_intent(clickstream, transactions, credit_score=750)
     
-    # Auto Loan GBDT score:
-    # Base: -2.5
-    # Tree 1: apply_clicks > 0, tx_triggers > 0 -> +1.8
-    # Tree 2: has_high_intent_path = True -> +1.5
-    # Tree 3: credit_score >= 750 -> +0.4
-    # Total z = -2.5 + 1.8 + 1.5 + 0.4 = +1.2 -> Sigmoid(1.2) = 0.77 (Hot intent)
-    assert res_hot["Auto Loan"]["propensity_score"] == 0.77
+    # Auto Loan Twin evaluation with transaction dealer debit:
+    # Model 2 (Intent): intent_score = 76.9% (using exact GBDT Forest: logit = 1.2)
+    # Lead Score = 0.35*76.9 (26.9) + 0.30*100 (30) + 0.20*75 (15) + 0.15*70 (10.5) = 82.4% -> 0.82 propensity
+    assert res_hot["Auto Loan"]["propensity_score"] == 0.82
     assert res_hot["Auto Loan"]["intent_level"] == "Hot"

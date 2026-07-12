@@ -22,7 +22,7 @@ from .services.ai_outreach import generate_outreach_copy
 from ..seed import seed_database
 
 app = FastAPI(
-    title="Alpha-Fin Core Engine",
+    title="Prospect Assist AI Core Engine",
     description="Behavioral Credit & Hyper-Targeted Lead underwriting API",
     version="1.0.0"
 )
@@ -58,8 +58,8 @@ def refresh_customer_leads(db: Session, customer_id: int):
             Lead.loan_type == loan_type
         ).first()
         
-        # We only track Warm and Hot leads to prevent spamming the Relationship Manager
-        if p_data["intent_level"] in ["Warm", "Hot"]:
+        # Filter: Save leads in database if propensity score >= 35% (Warm/Hot leads) for dynamic RM dashboard filtering
+        if p_data["propensity_score"] >= 0.35:
             eligibility = calculate_loan_eligibility(disposable, loan_type, cust.credit_score)
             
             if existing_lead:
@@ -83,7 +83,7 @@ def refresh_customer_leads(db: Session, customer_id: int):
                 )
                 db.add(new_lead)
         else:
-            # If propensity falls back to Cold, remove it from active leads
+            # If propensity score falls below 35%, remove it from the active database
             if existing_lead:
                 db.delete(existing_lead)
                 
@@ -159,8 +159,22 @@ def add_transaction(tx: TransactionCreate, db: Session = Depends(get_db)):
 # --- Lead Board Endpoints ---
 @app.get("/api/leads", response_model=List[LeadResponse])
 def get_leads(db: Session = Depends(get_db)):
-    # Fetch all leads sorted by propensity score descending (highest priority first)
-    return db.query(Lead).order_by(Lead.propensity_score.desc()).all()
+    leads_list = db.query(Lead).order_by(Lead.propensity_score.desc()).all()
+    
+    # Dynamically inject the Behavioral Financial Twin profile metadata
+    for lead in leads_list:
+        cust = lead.customer
+        tx_list = [{"amount": t.amount, "category": t.category, "description": t.description, "timestamp": t.timestamp} for t in cust.transactions]
+        click_list = [{"page_url": c.page_url, "action": c.action, "timestamp": c.timestamp} for c in cust.clickstream_events]
+        
+        # Evaluate twin scores
+        twin_data = evaluate_propensity_and_intent(click_list, tx_list, cust.credit_score)
+        
+        # Bind the product specific twin parameters to the lead schema object
+        if lead.loan_type in twin_data:
+            lead.financial_twin = twin_data[lead.loan_type]["financial_twin"]
+            
+    return leads_list
 
 @app.post("/api/leads/{lead_id}/status")
 def update_lead_status(lead_id: int, status_update: dict, db: Session = Depends(get_db)):

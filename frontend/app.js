@@ -112,20 +112,31 @@ async function fetchLeads(showVisualIndicators = false) {
     }
 }
 
+// DYNAMIC THRESHOLD CONTROL
+let activeThreshold = 0.70; // Defaults to 70% threshold
+
+function changeThreshold(val) {
+    activeThreshold = parseFloat(val) / 100.0;
+    document.getElementById("thresholdLabel").textContent = val + "%";
+    renderLeadBoard();
+}
+
 // RENDER LEAD BOARD
 function renderLeadBoard() {
     leadsTableBody.innerHTML = "";
     
-    statTotalLeads.textContent = leads.length;
-    const hotLeads = leads.filter(l => l.intent_level === "Hot").length;
+    const filteredLeads = leads.filter(l => l.propensity_score >= activeThreshold);
+    
+    statTotalLeads.textContent = filteredLeads.length;
+    const hotLeads = filteredLeads.filter(l => l.intent_level === "Hot").length;
     statHotLeads.textContent = hotLeads;
 
-    if (leads.length === 0) {
-        leadsTableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No active high-intent leads generated yet. Trigger customer actions on the phone portal.</td></tr>`;
+    if (filteredLeads.length === 0) {
+        leadsTableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No active leads match the qualification threshold of ${(activeThreshold * 100).toFixed(0)}%. Try sliding the filter down to see other prospects.</td></tr>`;
         return;
     }
 
-    leads.forEach(lead => {
+    filteredLeads.forEach(lead => {
         const row = document.createElement("tr");
         
         const disposable = lead.calculated_disposable_income.toLocaleString('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
@@ -294,6 +305,21 @@ function openOutreachDrawer(leadId) {
         outreachControlWarning.classList.remove("hidden");
     } else {
         outreachControlWarning.classList.add("hidden");
+    }
+
+    // Bind Behavioral Financial Twin dynamic scores
+    const twin = activeLeadForOutreach.financial_twin;
+    if (twin) {
+        document.getElementById("twinRepayment").textContent = `${twin.repayment_capacity.toFixed(1)}%`;
+        document.getElementById("twinIntent").textContent = `${twin.intent_score.toFixed(0)}`;
+        document.getElementById("twinDiscipline").textContent = `${twin.financial_discipline.toFixed(0)}`;
+        document.getElementById("twinStability").textContent = `${twin.spending_stability.toFixed(0)}`;
+        document.getElementById("twinIncomeConf").textContent = `${twin.income_confidence.toFixed(0)}`;
+        document.getElementById("twinAcceptance").textContent = `${twin.offer_acceptance.toFixed(1)}%`;
+        document.getElementById("twinLeadScore").textContent = `${twin.lead_score.toFixed(1)}%`;
+        document.getElementById("financialTwinSection").classList.remove("hidden");
+    } else {
+        document.getElementById("financialTwinSection").classList.add("hidden");
     }
 
     outreachDrawer.classList.remove("hidden");

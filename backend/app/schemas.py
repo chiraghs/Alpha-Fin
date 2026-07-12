@@ -76,11 +76,21 @@ class LeadBase(BaseModel):
 class LeadCreate(LeadBase):
     customer_id: int
 
+class FinancialTwinSchema(BaseModel):
+    repayment_capacity: float
+    intent_score: float
+    financial_discipline: float
+    spending_stability: float
+    income_confidence: float
+    offer_acceptance: float
+    lead_score: float
+
 class LeadResponse(LeadBase):
     id: int
     customer_id: int
     customer: Customer
     last_updated: datetime
+    financial_twin: Optional[FinancialTwinSchema] = None
 
     class Config:
         from_attributes = True

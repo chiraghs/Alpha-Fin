@@ -107,7 +107,20 @@ All files have been successfully created and configured:
   * **A/B Testing Impact Dashboard**: Computes conversion metrics (Treated Rate, Control Rate, Conversion Lift) from db tables in real-time.
   * **AI Outreach Assistant**: Generates customized WhatsApp/email pitches tailored to customer context and their exact loan type.
 
-### 📅 Phase 3: AI Integration, Test Suit & AWS Readiness ➔ `[x] COMPLETED`
+### 📅 Phase 3: Multi-Model ML Pipeline & Data Ingestion (Data Lake) ➔ `[x] COMPLETED`
+* Implement a unified **Data Ingestion Ingestion Layer (Data Lake)** to load Core Banking, Internet Banking, UPI Logs, Credit Bureau, and CRM inputs.
+* Deploy **Feature Engineering** layer to structure transactional behaviour, relationship metrics, and user app clicks.
+* Build and integrate **4 Core Machine Learning Models**:
+  * **Model 1 (Income Estimation)**: Computes estimated monthly net disposable income and consistency index.
+  * **Model 2 (Intent Prediction)**: Predicts loan intent (0-100) using calculator sessions, CC utilization, and savings rates.
+  * **Model 3 (Risk & Underwriting)**: Computes Probability of Default (PD) and risk tiering based on bureau and missed payments.
+  * **Model 4 (Conversion ML)**: Integrates income, intent, and risk to predict conversion likelihood (0-100%).
+* Generate a dynamic **Behavioral Financial Twin** for each customer compiling six scores: *Repayment Capacity*, *Intent*, *Financial Discipline*, *Spending Stability*, *Income Confidence*, and *Offer Acceptance Probability*.
+* Prioritize prospects using the **Explainable Weighted Lead Score formula**:
+  $$\text{Lead Score} = 0.35 \times \text{Intent} + 0.30 \times \text{Repayment Capacity} + 0.20 \times \text{Financial Stability} + 0.15 \times \text{Customer Relationship}$$
+* Apply a **Lead Ranking and 70% Filter Threshold** to block low-quality leads and push only high-converting ones to the RM Hub.
+
+### 📅 Phase 4: AI Integration, Test Suite & AWS Readiness ➔ `[x] COMPLETED`
 * Integrate LLM endpoints (via Gemini/OpenAI APIs) with a high-fidelity local template fallback to customize RM marketing copy.
 * Implement `backend/tests/` to run unit tests verifying the calculation of disposable income and correct scoring of client intent.
 * Create a Dockerfile to ensure containerized portability for the AWS/ACC cloud hosting.
