@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 # --- Transaction Schemas ---
 class TransactionBase(BaseModel):
@@ -91,6 +91,9 @@ class LeadResponse(LeadBase):
     customer: Customer
     last_updated: datetime
     financial_twin: Optional[FinancialTwinSchema] = None
+    reasons: Optional[List[str]] = []
+    intent_velocity: Optional[float] = 0.0
+    life_events: Optional[List[Dict[str, Any]]] = []
 
     class Config:
         from_attributes = True

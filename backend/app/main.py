@@ -59,6 +59,14 @@ def refresh_customer_leads(db: Session, customer_id: int):
             Lead.loan_type == loan_type
         ).first()
         
+        # Strict Risk Model 3 Gate check
+        is_high_risk = p_data.get("risk_evaluation", {}).get("risk_tier") == "High Risk (Subprime)"
+        if is_high_risk:
+            # Remove any active lead if risk is high
+            if existing_lead:
+                db.delete(existing_lead)
+            continue
+            
         # Filter: Save leads in database if propensity score >= 35% (Warm/Hot leads) for dynamic RM dashboard filtering
         if p_data["propensity_score"] >= 0.35:
             eligibility = calculate_loan_eligibility(disposable, loan_type, cust.credit_score)
@@ -195,6 +203,9 @@ def get_leads(db: Session = Depends(get_db)):
         # Bind the product specific twin parameters to the lead schema object
         if lead.loan_type in twin_data:
             lead.financial_twin = twin_data[lead.loan_type]["financial_twin"]
+            lead.reasons = twin_data[lead.loan_type].get("reasons", [])
+            lead.intent_velocity = twin_data[lead.loan_type].get("intent_velocity", 0.0)
+            lead.life_events = twin_data[lead.loan_type].get("life_events", [])
             
     return leads_list
 

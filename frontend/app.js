@@ -146,17 +146,37 @@ function renderLeadBoard() {
         const propensityPct = Math.round(lead.propensity_score * 100);
         
         const cohortBadgeClass = lead.cohort === "Treated" ? "badge-treated" : "badge-control";
+        
+        let velocityHtml = "";
+        if (lead.intent_velocity >= 15) {
+            velocityHtml = `<span class="badge-velocity pulse-fast" title="Intent velocity surged by +${lead.intent_velocity}% in the last week!"><i class="fa-solid fa-bolt"></i> Call Now</span>`;
+        }
+        
+        let lifeEventHtml = "";
+        if (lead.life_events && lead.life_events.length > 0) {
+            const firstEvent = lead.life_events[0];
+            const eventClean = firstEvent.label.split(" (")[0];
+            lifeEventHtml = `<span class="badge-life-event" title="${firstEvent.label}">${firstEvent.icon} ${eventClean}</span>`;
+        }
 
         row.innerHTML = `
             <td><strong>${lead.customer.name}</strong></td>
-            <td>${lead.loan_type}</td>
+            <td>
+                <div class="product-cell-container">
+                    <strong>${lead.loan_type}</strong>
+                    ${lifeEventHtml}
+                </div>
+            </td>
             <td>${disposable}</td>
             <td>${lead.customer.credit_score}</td>
             <td>
-                <span class="badge-intent ${intentBadgeClass}">
-                    <i class="fa-solid ${lead.intent_level === 'Hot' ? 'fa-fire pulse' : 'fa-circle-dot'}"></i>
-                    ${lead.intent_level} (${propensityPct}%)
-                </span>
+                <div class="readiness-cell-container" style="display: flex; flex-direction: column; gap: 4px;">
+                    <span class="badge-intent ${intentBadgeClass}">
+                        <i class="fa-solid ${lead.intent_level === 'Hot' ? 'fa-fire pulse' : 'fa-circle-dot'}"></i>
+                        ${lead.intent_level} (${propensityPct}%)
+                    </span>
+                    ${velocityHtml}
+                </div>
             </td>
             <td>
                 <span class="badge-cohort ${cohortBadgeClass}">
@@ -318,6 +338,28 @@ function openOutreachDrawer(leadId) {
         document.getElementById("twinAcceptance").textContent = `${twin.offer_acceptance.toFixed(1)}%`;
         document.getElementById("twinLeadScore").textContent = `${twin.lead_score.toFixed(1)}%`;
         document.getElementById("financialTwinSection").classList.remove("hidden");
+        
+        // Render timeline checklist inside the outreach modal
+        const outreachTimelineBox = document.getElementById("outreachTimelineReasons");
+        outreachTimelineBox.innerHTML = "";
+        
+        const reasons = activeLeadForOutreach.reasons;
+        if (reasons && reasons.length > 0) {
+            let reasonsHtml = `<h5 style="margin-bottom: 0.5rem; font-size: 0.75rem; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.5px;"><i class="fa-solid fa-list-check"></i> Decision Timeline Checklist</h5>`;
+            reasonsHtml += `<ul style="list-style: none; padding-left: 0; display: flex; flex-direction: column; gap: 6px;">`;
+            reasons.forEach(reason => {
+                let icon = `<i class="fa-solid fa-circle-check" style="color: var(--accent-green);"></i>`;
+                if (reason.toLowerCase().includes("irregular") || reason.toLowerCase().includes("bounce") || reason.toLowerCase().includes("tight")) {
+                    icon = `<i class="fa-solid fa-triangle-exclamation" style="color: var(--accent-amber);"></i>`;
+                }
+                reasonsHtml += `<li style="font-size: 0.75rem; display: flex; align-items: start; gap: 8px; color: var(--text-primary);">${icon} <span>${reason}</span></li>`;
+            });
+            reasonsHtml += `</ul>`;
+            outreachTimelineBox.innerHTML = reasonsHtml;
+            outreachTimelineBox.classList.remove("hidden");
+        } else {
+            outreachTimelineBox.classList.add("hidden");
+        }
     } else {
         document.getElementById("financialTwinSection").classList.add("hidden");
     }
@@ -673,7 +715,29 @@ function renderSelectedTwinProduct() {
     } else {
         narrative += `Financial discipline is pristine with zero statement alerts. `;
     }
-    narrative += `Overall, they qualify for targeted outreach with a lead score of **${leadScorePct}%** under our campaign cohort.`;
+    
+    if (twin.offer_acceptance_probability * 100 < 50 && twin.intent_score > 65) {
+        narrative += `Critically, while digital intent is high, their final conversion score is tempered by historical offer rejections or missed repayments. `;
+    } else if (twin.offer_acceptance_probability * 100 >= 75) {
+        narrative += `They exhibit a high historical campaign conversion rate (${(twin.offer_acceptance_probability * 100).toFixed(0)}%), making them a premium prospect. `;
+    }
+    
+    narrative += `<br><br>Overall, they qualify for targeted outreach with a Loan Readiness Index (LRI) score of **${leadScorePct}%** under our campaign cohort.`;
+    
+    // Add checklist timeline HTML
+    if (twin.reasons && twin.reasons.length > 0) {
+        narrative += `<div class="timeline-reasons-box" style="margin-top: 1rem; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 0.75rem;">`;
+        narrative += `<h5 style="margin-bottom: 0.5rem; font-size: 0.75rem; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.5px;"><i class="fa-solid fa-list-check"></i> Decision Intelligence Checklist</h5>`;
+        narrative += `<ul style="list-style: none; padding-left: 0; display: flex; flex-direction: column; gap: 6px;">`;
+        twin.reasons.forEach(reason => {
+            let icon = `<i class="fa-solid fa-circle-check" style="color: var(--accent-green);"></i>`;
+            if (reason.toLowerCase().includes("irregular") || reason.toLowerCase().includes("bounce") || reason.toLowerCase().includes("tight")) {
+                icon = `<i class="fa-solid fa-triangle-exclamation" style="color: var(--accent-amber);"></i>`;
+            }
+            narrative += `<li style="font-size: 0.75rem; display: flex; align-items: start; gap: 8px; color: var(--text-primary);">${icon} <span>${reason}</span></li>`;
+        });
+        narrative += `</ul></div>`;
+    }
     
     explanationEl.innerHTML = narrative;
 

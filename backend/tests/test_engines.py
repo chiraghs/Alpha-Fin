@@ -68,9 +68,9 @@ def test_evaluate_propensity_and_intent():
     # Model 2 (Intent): intent_score = 64.6% (using exact GBDT Forest: logit = 0.6)
     # Model 3 (Risk): pd_risk = 0.047 -> Discipline = 100%, Stability = 50%, composite = 75%
     # Model 4 (Conversion): logit z = 1.92 -> Sigmoid(1.92) = 0.87 (Conversion Acceptance)
-    # Lead Score = 0.35*64.6 (22.6) + 0.30*100 (30.0) + 0.20*75 (15.0) + 0.15*70 (10.5) = 78.1% -> 0.78 propensity
-    assert res["Auto Loan"]["propensity_score"] == 0.78
-    assert res["Auto Loan"]["intent_level"] == "Hot"
+    # Lead Score = LRI Multiplicative Product = 26% (Cold)
+    assert res["Auto Loan"]["propensity_score"] == 0.26
+    assert res["Auto Loan"]["intent_level"] == "Cold"
     
     # Add high-value transaction trigger (car dealer)
     transactions.append({"amount": -2000.0, "category": "SHOPPING", "description": "MARUTI SUZUKI SHOWROOM DEBIT", "timestamp": now - timedelta(days=4)})
@@ -78,10 +78,11 @@ def test_evaluate_propensity_and_intent():
     res_hot = evaluate_propensity_and_intent(clickstream, transactions, credit_score=750)
     
     # Auto Loan Twin evaluation with transaction dealer debit:
-    # Model 2 (Intent): intent_score = 76.9% (using exact GBDT Forest: logit = 1.2)
-    # Lead Score = 0.35*76.9 (26.9) + 0.30*100 (30) + 0.20*75 (15) + 0.15*70 (10.5) = 82.4% -> 0.82 propensity
-    assert res_hot["Auto Loan"]["propensity_score"] == 0.82
-    assert res_hot["Auto Loan"]["intent_level"] == "Hot"
+    # Model 2 (Intent): intent_score = 76.9%
+    # Life Event Detected: VEHICLE_UPGRADE_POTENTIAL (80% confidence)
+    # Lead Score = LRI Multiplicative Product = 42% (Warm)
+    assert res_hot["Auto Loan"]["propensity_score"] == 0.42
+    assert res_hot["Auto Loan"]["intent_level"] == "Warm"
 
 def test_historical_conversion_propensity():
     now = datetime.utcnow()
@@ -114,3 +115,50 @@ def test_historical_conversion_propensity():
     bad_prob = res_bad["Auto Loan"]["financial_twin"]["offer_acceptance"]
     
     assert bad_prob < clean_prob
+
+def test_underwriting_risk_gate():
+    # Elite/Low Risk customer
+    res_low = evaluate_propensity_and_intent([], [], credit_score=780)
+    assert res_low["Auto Loan"]["risk_evaluation"]["risk_tier"] == "Low Risk (Elite)"
+    
+    # High Risk customer: credit score below 600
+    res_high_credit = evaluate_propensity_and_intent([], [], credit_score=550)
+    assert res_high_credit["Auto Loan"]["risk_evaluation"]["risk_tier"] == "High Risk (Subprime)"
+    
+    # High Risk customer: late charges count >= 2
+    now = datetime.utcnow()
+    tx_bad = [
+        {"amount": -200.0, "category": "PENALTY", "description": "LATE FEE CHARGE 1", "timestamp": now - timedelta(days=10)},
+        {"amount": -200.0, "category": "PENALTY", "description": "BOUNCE CHG CHARGE 2", "timestamp": now - timedelta(days=15)}
+    ]
+    res_high_bounces = evaluate_propensity_and_intent([], tx_bad, credit_score=750)
+    assert res_high_bounces["Auto Loan"]["risk_evaluation"]["risk_tier"] == "High Risk (Subprime)"
+
+def test_loan_readiness_index():
+    # High readiness in all dimensions
+    res_ready = evaluate_propensity_and_intent([], [], credit_score=800)
+    lri_high = res_ready["Auto Loan"]["propensity_score"]
+    
+    # Low readiness because of subprime status or no intent click activity
+    res_low_readiness = evaluate_propensity_and_intent([], [], credit_score=620)
+    lri_low = res_low_readiness["Auto Loan"]["propensity_score"]
+    
+    assert lri_low < lri_high
+
+def test_life_event_detection():
+    now = datetime.utcnow()
+    
+    # Trigger wedding and education events
+    tx = [
+        {"amount": -50000.0, "category": "SHOPPING", "description": "TANISHQ JEWELLERS WEDDING SPEND", "timestamp": now - timedelta(days=10)},
+        {"amount": -15000.0, "category": "EDUCATION", "description": "DPS SCHOOL FEES DEBIT", "timestamp": now - timedelta(days=12)}
+    ]
+    
+    res = evaluate_propensity_and_intent([], tx, credit_score=750)
+    
+    reasons = res["Personal Loan"]["reasons"]
+    has_marriage = any("Marriage Planning" in r for r in reasons)
+    has_school = any("Education Fees" in r for r in reasons)
+    
+    assert has_marriage is True
+    assert has_school is True

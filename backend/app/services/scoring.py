@@ -242,6 +242,120 @@ def predict_conversion(
     return round(conv_prob, 2)
 
 
+def ensure_datetime(t_val) -> datetime:
+    if isinstance(t_val, str):
+        try:
+            return datetime.fromisoformat(t_val.replace("Z", ""))
+        except ValueError:
+            return datetime.utcnow()
+    if isinstance(t_val, datetime):
+        return t_val
+    return datetime.utcnow()
+
+
+def detect_life_events(transactions: List[Dict[str, Any]], clickstream: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    events = []
+    
+    # 1. Promotions / Inflow Surge
+    salaries = []
+    for t in transactions:
+        if t.get("category") == "Salary":
+            salaries.append({
+                "amount": t["amount"],
+                "timestamp": ensure_datetime(t["timestamp"])
+            })
+    salaries = sorted(salaries, key=lambda x: x["timestamp"])
+    if len(salaries) >= 2:
+        prev_avg = sum([s["amount"] for s in salaries[:-1]]) / (len(salaries) - 1)
+        latest_val = salaries[-1]["amount"]
+        if prev_avg > 0 and latest_val >= prev_avg * 1.15:
+            percent_increase = round((latest_val - prev_avg) / prev_avg * 100)
+            events.append({
+                "event": "PROMOTION_DETECTED",
+                "icon": "📈",
+                "label": f"Promotion / Inflow Surge (+{percent_increase}%)",
+                "confidence": 95,
+                "date": salaries[-1]["timestamp"].isoformat()
+            })
+
+    # 2. Marriage payments
+    wedding_keywords = ["JEWELLER", "WEDDING", "MARRIAGE", "BANQUET", "SHERWANI", "LEHENGA"]
+    marriage_tx = []
+    for t in transactions:
+        desc = str(t.get("description", "")).upper()
+        if any(kw in desc for kw in wedding_keywords):
+            marriage_tx.append(t)
+    if marriage_tx:
+        events.append({
+            "event": "MARRIAGE_PLANNING",
+            "icon": "💍",
+            "label": "Marriage Planning Payments",
+            "confidence": 90,
+            "date": ensure_datetime(marriage_tx[0]["timestamp"]).isoformat()
+        })
+    else:
+        personal_clicks = [c for c in clickstream if "personal-loan" in str(c.get("page_url", "")).lower() and "marriage" in str(c.get("page_url", "")).lower()]
+        if personal_clicks:
+            events.append({
+                "event": "MARRIAGE_PLANNING",
+                "icon": "💍",
+                "label": "Marriage Planning (Browsing)",
+                "confidence": 40,
+                "date": ensure_datetime(personal_clicks[0]["timestamp"]).isoformat()
+            })
+
+    # 3. School Fees
+    school_keywords = ["SCHOOL", "COLLEGE", "TUITION", "ACADEMY", "UNIVERSITY", "VIDYALAYA"]
+    school_tx = []
+    for t in transactions:
+        desc = str(t.get("description", "")).upper()
+        if any(kw in desc for kw in school_keywords):
+            school_tx.append(t)
+    if school_tx:
+        events.append({
+            "event": "SCHOOL_FEES_STARTED",
+            "icon": "🎓",
+            "label": "Education Fees Commenced",
+            "confidence": 85,
+            "date": ensure_datetime(school_tx[0]["timestamp"]).isoformat()
+        })
+
+    # 4. Vehicle upgrade potential
+    auto_keywords = ["INSURANCE", "CHOLA", "ICICI LOMBARD", "HDFC ERGO", "MOTORS", "SHOWROOM", "CAR SERVICE"]
+    auto_tx = []
+    for t in transactions:
+        desc = str(t.get("description", "")).upper()
+        if any(kw in desc for kw in auto_keywords):
+            auto_tx.append(t)
+    if auto_tx:
+        events.append({
+            "event": "VEHICLE_UPGRADE_POTENTIAL",
+            "icon": "🚗",
+            "label": "Vehicle Insurance / Premium",
+            "confidence": 80,
+            "date": ensure_datetime(auto_tx[0]["timestamp"]).isoformat()
+        })
+
+    # 5. Rent Deposit / Home Search
+    rent_keywords = ["DEPOSIT", "RENTAL", "NOBROKER", "HOUSING", "BROKERAGE"]
+    rent_tx = []
+    for t in transactions:
+        desc = str(t.get("description", "")).upper()
+        if any(kw in desc for kw in rent_keywords):
+            rent_tx.append(t)
+    has_home_browsing = any("home-loan" in str(c.get("page_url", "")).lower() for c in clickstream)
+    if rent_tx and has_home_browsing:
+        events.append({
+            "event": "HOME_BUYER_INTENT",
+            "icon": "🏠",
+            "label": "Rental Deposit & Home Search",
+            "confidence": 90,
+            "date": ensure_datetime(rent_tx[0]["timestamp"]).isoformat()
+        })
+
+    return events
+
+
 # ==========================================
 # MAIN INTERFACE ENTRY POINT (BEHAVIORAL FINANCIAL TWIN)
 # ==========================================
@@ -327,26 +441,86 @@ def evaluate_propensity_and_intent(
     else:
         relationship_score = 55.0
         
+    # Life Event Detection
+    life_events = detect_life_events(transactions, clickstream_events)
+    
     for p in products:
         # f. Intent Score (0-100) using the GBDT tree simulator
         intent_val = predict_intent(clickstream_events, transactions, p, credit_score)
         
+        # Calculate Intent Velocity
+        now = datetime.utcnow()
+        clicks_recent = []
+        clicks_prior = []
+        for c in clickstream_events:
+            ts = ensure_datetime(c["timestamp"])
+            days_ago = (now - ts).days
+            if days_ago <= 7:
+                clicks_recent.append(c)
+            elif 7 < days_ago <= 14:
+                clicks_prior.append(c)
+                
+        intent_recent = predict_intent(clicks_recent, transactions, p, credit_score)
+        intent_prior = predict_intent(clicks_prior, transactions, p, credit_score)
+        intent_velocity = round(intent_recent - intent_prior, 1)
+
+        # Match life events for product p
+        p_events = []
+        for le in life_events:
+            evt = le["event"]
+            if p == "Auto Loan" and evt in ["VEHICLE_UPGRADE_POTENTIAL", "PROMOTION_DETECTED"]:
+                p_events.append(le)
+            elif p in ["Home Loan", "Mortgage Loan"] and evt in ["HOME_BUYER_INTENT", "PROMOTION_DETECTED"]:
+                p_events.append(le)
+            elif p == "Personal Loan" and evt in ["MARRIAGE_PLANNING", "SCHOOL_FEES_STARTED", "PROMOTION_DETECTED"]:
+                p_events.append(le)
+                
+        life_event_confidence = 50.0
+        if p_events:
+            life_event_confidence = float(max([e["confidence"] for e in p_events]))
+
         # g. Offer Acceptance Probability (0-100%) - Blend GBDT & Historical
         conversion_prob_gbdt = predict_conversion(credit_score, intent_val, disposable, pd_risk)
         conversion_prob = 0.70 * conversion_prob_gbdt + 0.30 * p_history
         
-        # h. Final Weighted Lead Score Formula (0-100)
-        lead_score = (
-            (0.35 * intent_val) +
-            (0.30 * repayment_capacity_score) +
-            (0.20 * financial_stability) +
-            (0.15 * relationship_score)
-        )
-        lead_score = min(100.0, max(0.0, lead_score))
+        # h. Loan Readiness Index (LRI) replacing old lead score
+        # Multiplicative bounded formula:
+        scores = [repayment_capacity_score, intent_val, financial_stability, life_event_confidence, relationship_score]
+        prod_term = 1.0
+        for s in scores:
+            prod_term *= (0.2 + 0.8 * (s / 100.0))
+        lri_score = 100.0 * prod_term
+        lri_score = min(100.0, max(0.0, lri_score))
         
-        # Convert lead_score to a 0.0 - 1.0 scale to store in database `propensity_score`
-        propensity_score_scaled = round(lead_score / 100.0, 2)
+        # Convert lri_score to 0.0 - 1.0 scale to store in database `propensity_score`
+        propensity_score_scaled = round(lri_score / 100.0, 2)
         
+        # Compile chronological timelines / reason logs
+        reasons = []
+        if confidence_score >= 80.0:
+            reasons.append("Salary stable for 90+ days (consistent salary deposits verified)")
+        else:
+            reasons.append("Irregular or limited salary inflows observed in past 90 days")
+            
+        if discipline_score >= 100.0:
+            reasons.append("Pristine payment discipline (zero statement bounce alerts)")
+        else:
+            reasons.append(f"Statement penalty checks bounced (Discipline: {discipline_score:.0f}/100)")
+            
+        if repayment_capacity_score >= 40.0:
+            reasons.append(f"Optimal debt capacity headroom ({repayment_capacity_score:.0f}% net disposable income)")
+        else:
+            reasons.append(f"Tight debt capacity headroom ({repayment_capacity_score:.0f}% net disposable income)")
+            
+        if intent_velocity >= 15.0:
+            reasons.append(f"Digital intent velocity surged: +{intent_velocity:.0f}% clickstream intensity increase")
+            
+        for le in p_events:
+            reasons.append(f"Life Event: {le['label']} (Confidence: {le['confidence']}%)")
+            
+        if conversion_prob >= 0.70:
+            reasons.append(f"High historical offer conversion likelihood ({conversion_prob * 100:.0f}%)")
+            
         # Intent level and triggers classification
         triggers = []
         if intent_val >= 70.0:
@@ -367,9 +541,12 @@ def evaluate_propensity_and_intent(
         eligibility = calculate_loan_eligibility(disposable, p, credit_score)
         
         final_results[p] = {
-            "propensity_score": propensity_score_scaled,  # Stores the final Lead Score (0.0 to 1.0)
+            "propensity_score": propensity_score_scaled,  # Stores the LRI Score (0.0 to 1.0)
             "intent_level": intent_label,
             "triggers": triggers,
+            "reasons": reasons,
+            "intent_velocity": intent_velocity,
+            "life_events": p_events,
             
             # --- Flat properties matching `twin` attributes in `app.js` customer-level twin detail ---
             "repayment_capacity_score": round(repayment_capacity_score, 1),
@@ -394,7 +571,7 @@ def evaluate_propensity_and_intent(
                 "spending_stability": round(spending_stability_score, 1),
                 "income_confidence": round(confidence_score, 1),
                 "offer_acceptance": round(conversion_prob * 100.0, 1),
-                "lead_score": round(lead_score, 1)
+                "lead_score": round(lri_score, 1)
             }
         }
         
