@@ -50,7 +50,8 @@ def refresh_customer_leads(db: Session, customer_id: int):
     disposable = credit_data["disposable_income"]
     
     # Calculate propensity scores
-    propensity_map = evaluate_propensity_and_intent(click_list, tx_list, cust.credit_score)
+    leads_list = [{"status": l.status, "loan_type": l.loan_type} for l in cust.leads]
+    propensity_map = evaluate_propensity_and_intent(click_list, tx_list, cust.credit_score, leads_list)
     
     for loan_type, p_data in propensity_map.items():
         existing_lead = db.query(Lead).filter(
@@ -119,7 +120,8 @@ def get_customer_twin_profile(customer_id: int, db: Session = Depends(get_db)):
     tx_list = [{"amount": t.amount, "category": t.category, "description": t.description, "timestamp": t.timestamp} for t in cust.transactions]
     click_list = [{"page_url": c.page_url, "action": c.action, "timestamp": c.timestamp} for c in cust.clickstream_events]
     
-    twin_data = evaluate_propensity_and_intent(click_list, tx_list, cust.credit_score)
+    leads_list = [{"status": l.status, "loan_type": l.loan_type} for l in cust.leads]
+    twin_data = evaluate_propensity_and_intent(click_list, tx_list, cust.credit_score, leads_list)
     
     return {
         "customer_id": cust.id,
@@ -187,7 +189,8 @@ def get_leads(db: Session = Depends(get_db)):
         click_list = [{"page_url": c.page_url, "action": c.action, "timestamp": c.timestamp} for c in cust.clickstream_events]
         
         # Evaluate twin scores
-        twin_data = evaluate_propensity_and_intent(click_list, tx_list, cust.credit_score)
+        previous_leads = [{"status": l.status, "loan_type": l.loan_type} for l in cust.leads]
+        twin_data = evaluate_propensity_and_intent(click_list, tx_list, cust.credit_score, previous_leads)
         
         # Bind the product specific twin parameters to the lead schema object
         if lead.loan_type in twin_data:
@@ -236,7 +239,8 @@ async def generate_lead_outreach(req: OutreachGenerateRequest, db: Session = Dep
     # Re-evaluate triggers list for this lead type (Treated Group: Dynamic AI Generation)
     tx_list = [{"amount": t.amount, "category": t.category, "description": t.description, "timestamp": t.timestamp} for t in cust.transactions]
     click_list = [{"page_url": c.page_url, "action": c.action, "timestamp": c.timestamp} for c in cust.clickstream_events]
-    propensity_map = evaluate_propensity_and_intent(click_list, tx_list, cust.credit_score)
+    previous_leads = [{"status": l.status, "loan_type": l.loan_type} for l in cust.leads]
+    propensity_map = evaluate_propensity_and_intent(click_list, tx_list, cust.credit_score, previous_leads)
     triggers = propensity_map.get(lead.loan_type, {}).get("triggers", [])
     
     # Standard loan parameters (rates matching underwriting in services/credit.py)

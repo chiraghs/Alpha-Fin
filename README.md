@@ -64,6 +64,7 @@ graph LR
             
             Risk[Model 3: Risk & Underwriting]
             Conversion[Model 4: Conversion ML]
+            History[Model 5: Historical Conversion ML]
         end
         
         Ranking[Lead Ranking & Threshold Filter >70%]
@@ -91,6 +92,7 @@ graph LR
     FE --> Graph
     FE --> Risk
     FE --> Conversion
+    FE --> History
     
     Graph --> GBDT
     GBDT --> Intent
@@ -98,6 +100,7 @@ graph LR
     Income --> Conversion
     Intent --> Conversion
     Risk --> Conversion
+    History --> Conversion
     
     Conversion --> Ranking
     Ranking --> RDS
@@ -199,7 +202,7 @@ Prospect Assist AI constructs a **Behavioral Financial Twin** for each customer 
 3. **Financial Discipline Score**: Penalizes statement bounces and late fees (starts at 100, -25 per charge).
 4. **Spending Stability Score**: Income stability index tracking inflow consistency.
 5. **Income Confidence Score**: Based on recurrence of 90-day salary deposits (3 credits = 95, 2 = 80, 1 = 60).
-6. **Offer Acceptance Probability**: Campaign acceptance conversion probability.
+6. **Offer Acceptance Probability**: Blends digital GBDT conversion propensity with historical offer acceptance rate and missed repayments (70/30 weighted blend).
 
 ### 4. Explainable Weighted Lead Score Formula
 To prioritize prospects, the orchestrator combines the financial twin parameters into a final weighted lead score:
@@ -221,3 +224,27 @@ Prospect Assist AI provides an interactive **Customer Twin Portfolio Hub** allow
 * **Granular Drill-Down**: Shows precise metrics (Discipline, Repayment, Stability, Confidence, Intent, Acceptance) per product (Auto, Home, Personal, Mortgage) in a separate tabbed view.
 * **Explainable AI Log**: Displays natural-language reason logs explaining *why* the specific score was assigned, translating transaction/clickstream behaviors into business summaries.
 * **Dynamic Loan Limits**: Calculates the exact eligible limit and FOIR (debt capacity) headroom dynamically.
+
+### 7. Historical Conversion Propensity Model (Phase 6)
+Prospect Assist AI blends digital intent with historical performance to calculate campaign acceptance likelihood:
+* **Model 5: Historical Conversion ML**: Evaluates the count of prior campaign acceptance logs (`Converted` vs. `Rejected`) and counts active loan repayments (EMI transactions) vs. missed checks bounce fees.
+* **Blended Acceptance Engine**: Blends the GBDT intent conversion propensity with the historical conversion score using a 70/30 weighted formula, reducing conversion errors for high-intent but risky profiles.
+
+## 📸 Product Demonstration (UI Screenshots)
+
+Here is a visual walk-through of the Prospect Assist AI relationship manager console and its core interactive screens:
+
+### 1. Unified Relationship Manager Hub Dashboard
+The command center displays the prioritized lead scoring board, the live customer behavior simulator triggers (left panel), and the dynamic conversion performance lift tracking metrics in real-time.
+
+![Prospect AI](demo/images/Prospect%20AI.png)
+
+### 2. Behavioral Financial Twin Radar Analyzer
+The customer portfolio sub-screen provides a deep underwriting inspection tool. Select any customer to view their six twin metrics dynamically simulated across various loan types with explainable AI reason narrative logging.
+
+![Behavioral Twin](demo/images/Behaviour%20Twin.png)
+
+### 3. Hyper-Targeted Outreach Campaign Modal
+Clicking on outreach prompts a glassmorphic centered overlay dialog detailing campaign templates for different channels (WhatsApp, Email, RM Scripts) personalized to the specific customer's behavioral history.
+
+![Outreach Campaign](demo/images/Outreach%20Campaign.png)

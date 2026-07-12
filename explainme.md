@@ -122,11 +122,11 @@ The data flow from ingestion to display is structured as follows:
         └───────┬───────┘               └───────┬───────┘
                 │                               │
                 └───────────────┬───────────────┘
-                                │
-                         ┌───────────────┐
-                         │   Model 4:    │
-                         │ Conversion ML │
-                         └───────┬───────┘
+                                 │
+                          ┌───────────────┐        ┌───────────┐
+                          │   Model 4:    │ ◄───── │  Model 5: │
+                          │ Conversion ML │        │ Historical│
+                          └───────┬───────┘        └───────────┘
                                  │
                            Lead Ranking 
                       (Filter: Threshold >70%)
@@ -173,6 +173,11 @@ The data flow from ingestion to display is structured as follows:
 * **Inputs**: Income, bureau score, calculated intent, existing relationship tags, previous offers accepted, response history.
 * **Outputs**: Conversion Probability (Scale 0-100%).
 * **Lead Qualification Threshold**: Leads default to a qualification threshold of **70%**, but provides an interactive slider on the RM Dashboard so that managers can dynamically adjust the queue from 35% to 95% depending on branch workload.
+
+### 📈 Model 5 – Historical Conversion Propensity Model
+* **Purpose**: Evaluates prior loan repayment behaviors and campaign conversion flags to customize conversion propensities.
+* **Inputs**: Historical campaign acceptance logs, active EMI transactions, check bounce fees, late penalties.
+* **Outputs**: Prior Acceptance Probability (Scale 0-100%).
 
 ---
 
@@ -232,3 +237,9 @@ $$\text{Lead Score} = 0.35 \times \text{Intent} + 0.30 \times \text{Repayment Ca
 * Add navigation tab buttons to switch between "Prioritized Leads" and "Customer Twin Portfolio" view screen.
 * Build a sidebar to list all customer profiles, letting managers drill down into the six component scores of any customer.
 * Integrate explainable natural-language AI narration panels explaining exactly why the score was assigned and highlighting target eligible limits.
+
+### 📅 Phase 6: Extended Conversion Propensity Model ➔ `[x] COMPLETED`
+* Implement Model 5 evaluating previous campaign outcomes (`Converted` / `Rejected`) and active EMIs in statement history.
+* Blend Model 5 historical conversion metrics ($P_{\text{history}}$) with digital GBDT intent conversion metrics ($P_{\text{GBDT}}$) using a 70/30 weighted formula.
+* Expose previous leads logs to the backend endpoints (`get_customer_twin_profile`, `refresh_customer_leads`, etc.).
+* Update the Portfolio Tab explainable AI narratives and add unit verification checks.

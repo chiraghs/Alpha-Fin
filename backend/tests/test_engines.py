@@ -82,3 +82,35 @@ def test_evaluate_propensity_and_intent():
     # Lead Score = 0.35*76.9 (26.9) + 0.30*100 (30) + 0.20*75 (15) + 0.15*70 (10.5) = 82.4% -> 0.82 propensity
     assert res_hot["Auto Loan"]["propensity_score"] == 0.82
     assert res_hot["Auto Loan"]["intent_level"] == "Hot"
+
+def test_historical_conversion_propensity():
+    now = datetime.utcnow()
+    clickstream = [
+        {"page_url": "/auto-loan", "action": "VIEW", "timestamp": now - timedelta(days=2)},
+        {"page_url": "/auto-loan/emi", "action": "CALCULATE_EMI", "timestamp": now - timedelta(days=2)},
+        {"page_url": "/auto-loan/apply", "action": "CLICK_APPLY", "timestamp": now - timedelta(days=2)}
+    ]
+    
+    # 1. Clean history (no missed payments, no previous rejections)
+    tx_clean = [
+        {"amount": -500.0, "category": "FUEL", "description": "HPCL FUEL PETROL", "timestamp": now - timedelta(days=10)},
+        {"amount": -20000.0, "category": "EMI", "description": "HOME LOAN EMI", "timestamp": now - timedelta(days=10)}
+    ]
+    res_clean = evaluate_propensity_and_intent(clickstream, tx_clean, credit_score=750, previous_leads=[])
+    
+    # 2. History with missed payments and previous offer rejections
+    tx_bad = [
+        {"amount": -500.0, "category": "FUEL", "description": "HPCL FUEL PETROL", "timestamp": now - timedelta(days=10)},
+        {"amount": -200.0, "category": "PENALTY", "description": "BOUNCE CHG CHARGE", "timestamp": now - timedelta(days=10)}
+    ]
+    prev_leads = [
+        {"status": "Rejected", "loan_type": "Auto Loan"},
+        {"status": "Rejected", "loan_type": "Home Loan"}
+    ]
+    res_bad = evaluate_propensity_and_intent(clickstream, tx_bad, credit_score=750, previous_leads=prev_leads)
+    
+    # Check that offer acceptance probability is lower for bad history than clean history
+    clean_prob = res_clean["Auto Loan"]["financial_twin"]["offer_acceptance"]
+    bad_prob = res_bad["Auto Loan"]["financial_twin"]["offer_acceptance"]
+    
+    assert bad_prob < clean_prob

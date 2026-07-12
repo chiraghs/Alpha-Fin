@@ -1,6 +1,7 @@
 import math
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
+from .credit import calculate_loan_eligibility
 
 # ==========================================
 # PROSPECT ASSIST AI: MULTI-MODEL ML SERVICE
@@ -248,7 +249,8 @@ def predict_conversion(
 def evaluate_propensity_and_intent(
     clickstream_events: List[Dict[str, Any]], 
     transactions: List[Dict[str, Any]],
-    credit_score: int
+    credit_score: int,
+    previous_leads: List[Dict[str, Any]] = None
 ) -> Dict[str, Dict[str, Any]]:
     """
     Generates a Behavioral Financial Twin and computes the final weighted Lead Score:
@@ -267,6 +269,30 @@ def evaluate_propensity_and_intent(
     risk_metrics = evaluate_risk(credit_score, transactions)
     pd_risk = risk_metrics["probability_of_default"]
     late_charges = risk_metrics["late_charges_count"]
+    
+    # 3. Model 5: Historical Conversion Propensity (Campaign Acceptance & Loan History)
+    n_converted = 0
+    n_total = 0
+    if previous_leads:
+        for lead in previous_leads:
+            if lead.get("status") in ["Converted", "Rejected"]:
+                n_total += 1
+                if lead.get("status") == "Converted":
+                    n_converted += 1
+                    
+    r_accept = n_converted / n_total if n_total > 0 else 0.5
+    
+    emi_descriptions = set([t["description"].upper() for t in transactions if t["category"] == "EMI"])
+    n_active = len(emi_descriptions)
+    
+    z_hist = 2.0 * (r_accept - 0.5) - 0.4 * late_charges
+    if n_active > 0 and late_charges == 0:
+        z_hist += 0.3
+        
+    try:
+        p_history = 1.0 / (1.0 + math.exp(-z_hist))
+    except OverflowError:
+        p_history = 0.0 if z_hist < 0 else 1.0
     
     # Calculate Twin Components:
     # a. Repayment Capacity Score (0-100): Net disposable relative to gross income
@@ -305,8 +331,9 @@ def evaluate_propensity_and_intent(
         # f. Intent Score (0-100) using the GBDT tree simulator
         intent_val = predict_intent(clickstream_events, transactions, p, credit_score)
         
-        # g. Offer Acceptance Probability (0-100%)
-        conversion_prob = predict_conversion(credit_score, intent_val, disposable, pd_risk)
+        # g. Offer Acceptance Probability (0-100%) - Blend GBDT & Historical
+        conversion_prob_gbdt = predict_conversion(credit_score, intent_val, disposable, pd_risk)
+        conversion_prob = 0.70 * conversion_prob_gbdt + 0.30 * p_history
         
         # h. Final Weighted Lead Score Formula (0-100)
         lead_score = (
@@ -337,10 +364,29 @@ def evaluate_propensity_and_intent(
         else:
             intent_label = "Cold"
             
+        eligibility = calculate_loan_eligibility(disposable, p, credit_score)
+        
         final_results[p] = {
             "propensity_score": propensity_score_scaled,  # Stores the final Lead Score (0.0 to 1.0)
             "intent_level": intent_label,
             "triggers": triggers,
+            
+            # --- Flat properties matching `twin` attributes in `app.js` customer-level twin detail ---
+            "repayment_capacity_score": round(repayment_capacity_score, 1),
+            "intent_score": round(intent_val, 1),
+            "discipline_score": round(discipline_score, 1),
+            "spending_stability_score": round(spending_stability_score, 1),
+            "income_confidence_score": round(confidence_score, 1),
+            "offer_acceptance_probability": round(conversion_prob, 2),
+            "composite_lead_score": round(propensity_score_scaled, 2),
+            "risk_evaluation": {
+                "risk_tier": risk_metrics["risk_tier"],
+                "probability_of_default": risk_metrics["probability_of_default"],
+                "max_eligible_limit": eligibility["eligible_loan_amount"],
+                "foir_limit": eligibility["foir_applied"]
+            },
+            
+            # --- Nested dictionary matching `FinancialTwinSchema` in Pydantic schema ---
             "financial_twin": {
                 "repayment_capacity": round(repayment_capacity_score, 1),
                 "intent_score": round(intent_val, 1),
