@@ -162,6 +162,37 @@
                     </div>
                 </div>
 
+                <!-- A/B TESTING PERFORMANCE CARD -->
+                <div class="performance-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-square-poll-vertical"></i> Causal Inflow: A/B Campaign Lift</h3>
+                        <span class="refresh-indicator"><i class="fa-solid fa-calculator"></i> Real-time Impact Assessment</span>
+                    </div>
+                    <div class="perf-metrics">
+                        <div class="perf-metric-group treated-group">
+                            <span class="grp-label"><i class="fa-solid fa-wand-magic-sparkles"></i> Treated (AI Assist)</span>
+                            <div class="grp-val-line">
+                                <h4 id="perfTreatedRate">0.0%</h4>
+                                <span class="grp-fraction" id="perfTreatedFraction">(0/0 Conv)</span>
+                            </div>
+                            <div class="progress-bar-container"><div class="progress-bar green-bar" id="perfTreatedProgress" style="width: 0%;"></div></div>
+                        </div>
+                        <div class="perf-metric-group control-group">
+                            <span class="grp-label"><i class="fa-solid fa-envelope-open-text"></i> Control (Spam)</span>
+                            <div class="grp-val-line">
+                                <h4 id="perfControlRate">0.0%</h4>
+                                <span class="grp-fraction" id="perfControlFraction">(0/0 Conv)</span>
+                            </div>
+                            <div class="progress-bar-container"><div class="progress-bar grey-bar" id="perfControlProgress" style="width: 0%;"></div></div>
+                        </div>
+                        <div class="perf-metric-group lift-group">
+                            <span class="grp-label">Conversion Lift</span>
+                            <h4 id="perfLiftRate">+0.0%</h4>
+                            <span class="lift-badge" id="perfLiftStatus">Target Met</span>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- LEAD BOARD TABLE -->
                 <div class="leads-card">
                     <div class="card-header">
@@ -177,6 +208,7 @@
                                     <th>Disposable Income</th>
                                     <th>Credit Score</th>
                                     <th>Propensity</th>
+                                    <th>Cohort</th>
                                     <th>Eligible Limit</th>
                                     <th>Outreach</th>
                                 </tr>
@@ -197,6 +229,9 @@
                     <div class="drawer-content">
                         <div class="lead-context-summary">
                             <p>Generating campaign outreach for <strong id="outreachCustomerName">Aarav Mehta</strong> for a <strong id="outreachLoanType">Auto Loan</strong> of up to <strong id="outreachAmount">₹0</strong>.</p>
+                            <div id="outreachControlWarning" class="control-warning-banner hidden">
+                                <i class="fa-solid fa-circle-exclamation"></i> <strong>Control Group Case:</strong> This customer is in the Control group. Generating generic pre-approved templates instead of hyper-personalized behavioral AI copy.
+                            </div>
                         </div>
                         
                         <div class="channel-tabs">
@@ -222,6 +257,20 @@
                             <button id="btnCopyOutreach" class="btn btn-primary">
                                 <i class="fa-solid fa-copy"></i> Copy to Clipboard
                             </button>
+                            
+                            <div class="drawer-actions-divider"></div>
+                            
+                            <div class="outcome-section">
+                                <span class="outcome-label">Log Campaign Result:</span>
+                                <div class="outcome-buttons">
+                                    <button class="btn btn-outcome btn-convert" onclick="markLeadStatus('Converted')">
+                                        <i class="fa-solid fa-circle-check"></i> Convert Lead
+                                    </button>
+                                    <button class="btn btn-outcome btn-reject" onclick="markLeadStatus('Rejected')">
+                                        <i class="fa-solid fa-circle-xmark"></i> Reject Lead
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

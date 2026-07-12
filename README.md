@@ -77,24 +77,39 @@ This will automatically start:
 
 ## 🧪 Running Unit Tests
 
-To verify that the credit scoring engines and calculations are mathematically sound, run the `pytest` suite inside the virtual environment:
+To verify that the credit scoring engines and calculations are mathematically sound, run the `pytest` suite from the repository root:
 
 ```bash
-cd backend
-source venv/bin/activate
-python3 -m pytest tests/
+PYTHONPATH=backend ./venv/bin/pytest backend/tests/
 ```
 
 ---
 
 ## 🔬 Core Algorithms & Calculations
 
-### True Disposable Income Calculation
+### 1. GBDT Decision Tree Forest & Sigmoid Scaling
+Features extracted from user behavior (views, EMI calculations, credit score) and transactions (such as vehicle purchases or CC penalties) are combined into a feature vector $\vec{X}$. This vector is evaluated through a three-stage Decision Tree Forest that yields a log-odds margin logit $z$. This logit is scaled via a **Sigmoid Activation Function** to predict a conversion probability:
+
+$$P(\text{conversion}) = \sigma(z) = \frac{1}{1 + e^{-z}}$$
+
+* **Cold (Probability < 30%)**: Basic browsing or single page loads of generic services.
+* **Warm (Probability 30% - 70%)**: Sequential page hits on calculator tools or positive monthly credit increments.
+* **Hot (Probability >= 70%)**: High-value transactions matching intent (e.g. interior decorator bills, auto dealer transactions) combined with apply page hits.
+
+### 2. Graph Clickstream Sequence Transition
+Taps on the mobile app are analyzed as a directed state-space transition graph. Sequences matching the high-intent transition pattern:
+
+$$\text{VIEW} \xrightarrow{} \text{CALCULATE\_EMI} \xrightarrow{} \text{CLICK\_APPLY}$$
+
+receive a +1.5 log-odds boost in the GBDT evaluation, highlighting intent-based trajectory over simple pageviews.
+
+### 3. True Disposable Income Underwriting FOIR Capacity
 $$\text{Actual Disposable Income} = \text{Total Monthly Inflows} - \sum (\text{Active EMIs} + \text{SIPs/Investments} + \text{Fixed Utility Bills})$$
 
-*Why this matters*: Traditional underwriting looks at Gross Income. Alpha-Fin looks at *disposable* income, protecting the bank's asset quality while identifying borrowers who genuinely have the headroom to pay a new EMI.
+Traditional underwriting evaluates Gross Income. Alpha-Fin assesses *actual cash headroom*, protecting the bank's asset quality while identifying borrowers who can support new EMIs.
 
-### Intent Scorer Matrix
-* **Cold**: Basic browsing or single page loads of generic services.
-* **Warm**: Multiple hits on interest rate calculators, searches for specific terms, or a recent deposit bump.
-* **Hot**: Core transactions matching intent (e.g., high-value vendor payment to interior designers) combined with app searches for loans within a 48-hour window.
+### 4. Causal A/B Campaign Lift Dashboard
+To measure and prove conversion rate lifts (>30%), Alpha-Fin dynamically assigns incoming leads to:
+* **Treated Cohort**: Receives hyper-targeted AI-personalized outreach templates citing credit eligibility.
+* **Control Cohort**: Receives standard generic template bank spam.
+RMs can log lead outcomes directly in the UI, refreshing the live Treated vs. Control campaign charts in real-time.

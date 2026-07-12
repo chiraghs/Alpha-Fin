@@ -27,6 +27,7 @@ const outreachAmount = document.getElementById("outreachAmount");
 const outreachContentText = document.getElementById("outreachContentText");
 const outreachContentLoader = document.getElementById("outreachContentLoader");
 const btnCopyOutreach = document.getElementById("btnCopyOutreach");
+const outreachControlWarning = document.getElementById("outreachControlWarning");
 
 // Toast
 const toastNotification = document.getElementById("toastNotification");
@@ -101,6 +102,7 @@ async function fetchLeads(showVisualIndicators = false) {
         leads = await res.json();
         
         renderLeadBoard();
+        await fetchPerformanceData();
         
         if (showVisualIndicators) {
             showToast("RM Lead Board refreshed!");
@@ -119,7 +121,7 @@ function renderLeadBoard() {
     statHotLeads.textContent = hotLeads;
 
     if (leads.length === 0) {
-        leadsTableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No active high-intent leads generated yet. Trigger customer actions on the phone portal.</td></tr>`;
+        leadsTableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No active high-intent leads generated yet. Trigger customer actions on the phone portal.</td></tr>`;
         return;
     }
 
@@ -131,6 +133,8 @@ function renderLeadBoard() {
         
         const intentBadgeClass = lead.intent_level === "Hot" ? "badge-hot" : "badge-warm";
         const propensityPct = Math.round(lead.propensity_score * 100);
+        
+        const cohortBadgeClass = lead.cohort === "Treated" ? "badge-treated" : "badge-control";
 
         row.innerHTML = `
             <td><strong>${lead.customer.name}</strong></td>
@@ -141,6 +145,11 @@ function renderLeadBoard() {
                 <span class="badge-intent ${intentBadgeClass}">
                     <i class="fa-solid ${lead.intent_level === 'Hot' ? 'fa-fire pulse' : 'fa-circle-dot'}"></i>
                     ${lead.intent_level} (${propensityPct}%)
+                </span>
+            </td>
+            <td>
+                <span class="badge-cohort ${cohortBadgeClass}">
+                    ${lead.cohort}
                 </span>
             </td>
             <td><strong style="color: var(--accent-green);">${eligibleLimit}</strong></td>
@@ -280,6 +289,13 @@ function openOutreachDrawer(leadId) {
     outreachLoanType.textContent = activeLeadForOutreach.loan_type;
     outreachAmount.textContent = activeLeadForOutreach.eligible_loan_amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
 
+    // Display warning if Control Group
+    if (activeLeadForOutreach.cohort === "Control") {
+        outreachControlWarning.classList.remove("hidden");
+    } else {
+        outreachControlWarning.classList.add("hidden");
+    }
+
     outreachDrawer.classList.remove("hidden");
     
     // Switch to active tab channel
@@ -380,4 +396,78 @@ function showToast(message, isError = false) {
     setTimeout(() => {
         toastNotification.classList.add("hidden");
     }, 3000);
+}
+
+// --- PERFORMANCE ANALYTICS (A/B TESTING) ---
+async function fetchPerformanceData() {
+    try {
+        const res = await fetch(`${API_BASE}/leads/performance`);
+        if (!res.ok) throw new Error("Failed to load performance metrics");
+        const data = await res.json();
+        
+        // Treated metrics
+        const tRate = document.getElementById("perfTreatedRate");
+        const tFrac = document.getElementById("perfTreatedFraction");
+        const tProg = document.getElementById("perfTreatedProgress");
+        
+        tRate.textContent = `${data.treated.rate}%`;
+        tFrac.textContent = `(${data.treated.converted}/${data.treated.total} Conv)`;
+        tProg.style.width = `${data.treated.rate}%`;
+        
+        // Control metrics
+        const cRate = document.getElementById("perfControlRate");
+        const cFrac = document.getElementById("perfControlFraction");
+        const cProg = document.getElementById("perfControlProgress");
+        
+        cRate.textContent = `${data.control.rate}%`;
+        cFrac.textContent = `(${data.control.converted}/${data.control.total} Conv)`;
+        cProg.style.width = `${data.control.rate}%`;
+        
+        // Lift calculation
+        const lift = (data.treated.rate - data.control.rate).toFixed(1);
+        const lRate = document.getElementById("perfLiftRate");
+        const lStatus = document.getElementById("perfLiftStatus");
+        
+        lRate.textContent = `${lift >= 0 ? '+' : ''}${lift}%`;
+        
+        // Target evaluation (Track 2 conversion lift target > 15-20% margin, or 30% absolute)
+        if (lift >= 15.0) {
+            lStatus.textContent = "Target Met";
+            lStatus.style.backgroundColor = "rgba(0, 255, 135, 0.1)";
+            lStatus.style.color = "var(--accent-green)";
+            lStatus.style.border = "1px solid var(--accent-green)";
+        } else {
+            lStatus.textContent = "In Progress";
+            lStatus.style.backgroundColor = "rgba(255, 179, 0, 0.1)";
+            lStatus.style.color = "var(--accent-amber)";
+            lStatus.style.border = "1px solid var(--accent-amber)";
+        }
+    } catch (err) {
+        console.error("Error loading performance data:", err);
+    }
+}
+
+// REST: LOG CAMPAIGN OUTCOME (CONVERT / REJECT LEAD)
+async function markLeadStatus(newStatus) {
+    if (!activeLeadForOutreach) return;
+    
+    try {
+        const res = await fetch(`${API_BASE}/leads/${activeLeadForOutreach.id}/status`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: newStatus })
+        });
+        
+        if (res.ok) {
+            showToast(`Campaign logged: Lead marked as ${newStatus}`);
+            closeOutreachDrawer();
+            
+            // Refresh tables and stats
+            await fetchLeads(false);
+        } else {
+            showToast("Failed to update status", true);
+        }
+    } catch (err) {
+        showToast("Error updating lead status", true);
+    }
 }

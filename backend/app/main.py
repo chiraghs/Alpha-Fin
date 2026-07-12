@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from datetime import datetime
 from typing import List
+import random
 
 from .database import get_db, Base, engine
 from .models import Customer, Transaction, ClickstreamEvent, Lead
@@ -49,7 +50,7 @@ def refresh_customer_leads(db: Session, customer_id: int):
     disposable = credit_data["disposable_income"]
     
     # Calculate propensity scores
-    propensity_map = evaluate_propensity_and_intent(click_list, tx_list)
+    propensity_map = evaluate_propensity_and_intent(click_list, tx_list, cust.credit_score)
     
     for loan_type, p_data in propensity_map.items():
         existing_lead = db.query(Lead).filter(
@@ -77,7 +78,8 @@ def refresh_customer_leads(db: Session, customer_id: int):
                     calculated_disposable_income=disposable,
                     max_eligible_emi=eligibility["max_eligible_emi"],
                     eligible_loan_amount=eligibility["eligible_loan_amount"],
-                    status="New"
+                    status="New",
+                    cohort=random.choice(["Treated", "Control"])
                 )
                 db.add(new_lead)
         else:
@@ -183,10 +185,25 @@ async def generate_lead_outreach(req: OutreachGenerateRequest, db: Session = Dep
         
     cust = lead.customer
     
-    # Re-evaluate triggers list for this lead type
+    # Check if lead is in the Control group to serve standard banking templates instead of AI personalized copy
+    if lead.cohort == "Control":
+        if req.channel == "whatsapp":
+            content = f"👋 IDBI Bank Offer: Hi {cust.name}, get pre-approved {lead.loan_type} options starting at attractive interest rates. Minimal documentation required. Apply today! T&C Apply. Click: https://idbi.co/loans"
+        elif req.channel == "email":
+            content = f"Subject: Special Pre-Approved {lead.loan_type} Offer from IDBI Bank\n\nDear Customer,\n\nWe are pleased to inform you that you have been selected for a pre-approved {lead.loan_type} based on your banking relationship with IDBI Bank.\n\nKey Benefits:\n- Highly competitive interest rates\n- Flexible repayment tenures\n- 100% paperless documentation\n\nPlease visit our nearest branch or log in to internet banking to submit your application.\n\nWarm regards,\nIDBI Bank Ltd."
+        else: # call_script
+            content = f"[Control Group RM Call Script]\n\nRM: \"Hello, am I speaking with {cust.name}? My name is [Name] calling from IDBI Bank.\"\nClient: \"Yes, speaking.\"\nRM: \"I am calling to ask if you are looking for any {lead.loan_type} today? We have some attractive offers.\"\nClient: \"No, I am not interested right now.\"\nRM: \"Okay, no problem. Thank you for your time. Goodbye.\""
+            
+        return OutreachGenerateResponse(
+            lead_id=lead.id,
+            channel=req.channel,
+            content=content
+        )
+
+    # Re-evaluate triggers list for this lead type (Treated Group: Dynamic AI Generation)
     tx_list = [{"amount": t.amount, "category": t.category, "description": t.description, "timestamp": t.timestamp} for t in cust.transactions]
     click_list = [{"page_url": c.page_url, "action": c.action, "timestamp": c.timestamp} for c in cust.clickstream_events]
-    propensity_map = evaluate_propensity_and_intent(click_list, tx_list)
+    propensity_map = evaluate_propensity_and_intent(click_list, tx_list, cust.credit_score)
     triggers = propensity_map.get(lead.loan_type, {}).get("triggers", [])
     
     # Standard loan parameters (rates matching underwriting in services/credit.py)
@@ -220,6 +237,37 @@ async def generate_lead_outreach(req: OutreachGenerateRequest, db: Session = Dep
         channel=req.channel,
         content=content
     )
+
+# --- A/B testing Analytics performance Endpoints ---
+@app.get("/api/leads/performance")
+def get_leads_performance(db: Session = Depends(get_db)):
+    """
+    Computes conversion statistics comparing the Treated group (AI outreach)
+    against the Control group (generic bank spam).
+    """
+    leads_list = db.query(Lead).all()
+    
+    treated = [l for l in leads_list if l.cohort == "Treated"]
+    control = [l for l in leads_list if l.cohort == "Control"]
+    
+    treated_conv = len([l for l in treated if l.status == "Converted"])
+    treated_total = len(treated)
+    
+    control_conv = len([l for l in control if l.status == "Converted"])
+    control_total = len(control)
+    
+    return {
+        "treated": {
+            "converted": treated_conv,
+            "total": treated_total,
+            "rate": round((treated_conv / treated_total * 100), 1) if treated_total > 0 else 0.0
+        },
+        "control": {
+            "converted": control_conv,
+            "total": control_total,
+            "rate": round((control_conv / control_total * 100), 1) if control_total > 0 else 0.0
+        }
+    }
 
 # --- Simulator Control Endpoints ---
 @app.post("/api/reset")

@@ -56,6 +56,7 @@ class Lead(Base):
     max_eligible_emi = Column(Float, default=0.0)
     eligible_loan_amount = Column(Float, default=0.0)
     status = Column(String, default="New") # New, Contacted, Converted, Rejected
+    cohort = Column(String, default="Treated") # Treated (AI Assist), Control (Spam)
     last_updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     customer = relationship("Customer", back_populates="leads")

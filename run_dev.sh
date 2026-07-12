@@ -24,17 +24,13 @@ if [ $? -ne 0 ]; then
 fi
 
 # 1. Setup Virtual Environment
-cd backend
 if [ ! -d "venv" ]; then
-    echo -e "${YELLOW}Creating Python virtual environment (venv)...${NC}"
+    echo -e "${YELLOW}Creating Python virtual environment (venv) in repo root...${NC}"
     python3 -m venv venv
 fi
 
-echo -e "${YELLOW}Activating virtual environment...${NC}"
-source venv/bin/activate
-
 echo -e "${YELLOW}Installing dependencies from requirements.txt...${NC}"
-pip install -r requirements.txt
+./venv/bin/pip install -r backend/requirements.txt
 if [ $? -ne 0 ]; then
     echo -e "${RED}Error: Failed to install python dependencies.${NC}"
     exit 1
@@ -42,17 +38,15 @@ fi
 
 # 2. Seed Database
 echo -e "${YELLOW}Running database seed script...${NC}"
-python seed.py
+PYTHONPATH=backend ./venv/bin/python backend/seed.py
 if [ $? -ne 0 ]; then
     echo -e "${RED}Error: Database seeding failed.${NC}"
     exit 1
 fi
-cd ..
 
 # 3. Launch Services
 echo -e "${YELLOW}Starting FastAPI Backend Service on port 8000...${NC}"
-source backend/venv/bin/activate
-uvicorn backend.app.main:app --reload --port 8000 > backend.log 2>&1 &
+PYTHONPATH=backend ./venv/bin/uvicorn backend.app.main:app --reload --port 8000 > backend.log 2>&1 &
 BACKEND_PID=$!
 
 echo -e "${YELLOW}Starting Frontend HTTP server on port 3000...${NC}"

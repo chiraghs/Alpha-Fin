@@ -71,6 +71,7 @@ class LeadBase(BaseModel):
     max_eligible_emi: float
     eligible_loan_amount: float
     status: str
+    cohort: str
 
 class LeadCreate(LeadBase):
     customer_id: int

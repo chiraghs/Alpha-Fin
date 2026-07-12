@@ -49,26 +49,39 @@ def test_calculate_loan_eligibility():
 def test_evaluate_propensity_and_intent():
     now = datetime.utcnow()
     
-    # Customer logs viewing pages & using EMI calc -> Auto Loan interest
+    # Customer logs a high-intent sequential path VIEW ➔ CALCULATE_EMI ➔ CLICK_APPLY
     clickstream = [
         {"page_url": "/auto-loan", "action": "VIEW", "timestamp": now - timedelta(days=2)},
-        {"page_url": "/auto-loan/emi", "action": "CALCULATE_EMI", "timestamp": now - timedelta(days=2)}
+        {"page_url": "/auto-loan/emi", "action": "CALCULATE_EMI", "timestamp": now - timedelta(days=2)},
+        {"page_url": "/auto-loan/apply", "action": "CLICK_APPLY", "timestamp": now - timedelta(days=2)}
     ]
     
     transactions = [
         {"amount": -500.0, "category": "FUEL", "description": "HPCL FUEL PETROL", "timestamp": now - timedelta(days=10)}
     ]
     
-    res = evaluate_propensity_and_intent(clickstream, transactions)
+    # Evaluate with baseline transaction (no showroom spend)
+    res = evaluate_propensity_and_intent(clickstream, transactions, credit_score=750)
     
-    # Clickstream score: 0.15 (VIEW) + 0.25 (CALCULATE_EMI) = 0.40
-    assert res["Auto Loan"]["propensity_score"] == 0.40
+    # Auto Loan GBDT score:
+    # Base: -2.5
+    # Tree 1: apply_clicks > 0, tx_triggers = 0 -> +1.2
+    # Tree 2: has_high_intent_path = True -> +1.5
+    # Tree 3: credit_score >= 750 -> +0.4
+    # Total z = -2.5 + 1.2 + 1.5 + 0.4 = +0.6 -> Sigmoid(0.6) = 0.65 (Warm intent)
+    assert res["Auto Loan"]["propensity_score"] == 0.65
     assert res["Auto Loan"]["intent_level"] == "Warm"
     
     # Add high-value transaction trigger (car dealer)
     transactions.append({"amount": -2000.0, "category": "SHOPPING", "description": "MARUTI SUZUKI SHOWROOM DEBIT", "timestamp": now - timedelta(days=4)})
     
-    res_hot = evaluate_propensity_and_intent(clickstream, transactions)
-    # Score: 0.40 + 0.30 = 0.70 -> Hot intent
-    assert res_hot["Auto Loan"]["propensity_score"] == 0.70
+    res_hot = evaluate_propensity_and_intent(clickstream, transactions, credit_score=750)
+    
+    # Auto Loan GBDT score:
+    # Base: -2.5
+    # Tree 1: apply_clicks > 0, tx_triggers > 0 -> +1.8
+    # Tree 2: has_high_intent_path = True -> +1.5
+    # Tree 3: credit_score >= 750 -> +0.4
+    # Total z = -2.5 + 1.8 + 1.5 + 0.4 = +1.2 -> Sigmoid(1.2) = 0.77 (Hot intent)
+    assert res_hot["Auto Loan"]["propensity_score"] == 0.77
     assert res_hot["Auto Loan"]["intent_level"] == "Hot"
