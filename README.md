@@ -99,7 +99,7 @@ $$P(\text{conversion}) = \sigma(z) = \frac{1}{1 + e^{-z}}$$
 ### 2. Graph Clickstream Sequence Transition
 Taps on the mobile app are analyzed as a directed state-space transition graph. Sequences matching the high-intent transition pattern:
 
-$$\text{VIEW} \xrightarrow{} \text{CALCULATE\_EMI} \xrightarrow{} \text{CLICK\_APPLY}$$
+> **VIEW** ➔ **CALCULATE_EMI** ➔ **CLICK_APPLY**
 
 receive a +1.5 log-odds boost in the GBDT evaluation, highlighting intent-based trajectory over simple pageviews.
 
