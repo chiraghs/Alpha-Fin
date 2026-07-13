@@ -122,38 +122,21 @@ graph LR
     RDS --> ABDDashboard
     RDS --> TwinAnalyzer
     RDS --> Outreach
-
-    %% Beautiful Professional Slate & Pastel Styling Definitions
-    classDef source fill:#f8fafc,stroke:#64748b,stroke-width:1.5px,color:#0f172a;
-    classDef server fill:#ecfeff,stroke:#0891b2,stroke-width:1.5px,color:#083344,font-weight:bold;
-    classDef database fill:#f0f9ff,stroke:#0284c7,stroke-width:1.5px,color:#0c4a6e;
-    classDef model fill:#f5f3ff,stroke:#7c3aed,stroke-width:1.5px,color:#2e1065;
-    classDef filter fill:#fff7ed,stroke:#ea580c,stroke-width:1.5px,color:#7c2d12,font-weight:bold;
-    classDef block fill:#fef2f2,stroke:#ef4444,stroke-width:1.5px,color:#7f1d1d;
-    classDef presentation fill:#fdf2f8,stroke:#db2777,stroke-width:1.5px,color:#500724;
-
-    class CB,IB,UPI,Bureau,CRM source;
-    class FE,LRI server;
-    class Lake,RDS database;
-    class Income,Graph,GBDT,Velocity,LifeEvents,RiskModel,Conversion,History model;
-    class Pruning filter;
-    class Trash block;
-    class UI,ABDashboard,TwinAnalyzer,Outreach presentation;
 ```
 
 ## 🌐 Enterprise Distributed Microservices Architecture (Post-Submission Roadmap)
 
-For post-hackathon enterprise scaling, the monolithic prototype will transition into a highly available, decoupled **3-Repository Distributed Architecture** supported by industrial-grade API gateway, caching, and queuing layers:
+For post-hackathon enterprise scaling, the monolithic prototype will transition into a highly available, decoupled **4-Repository Distributed Architecture** supported by industrial-grade API gateway, caching, queuing, and analytical data warehouse synchronization layers:
 
 ```mermaid
 graph LR
-    %% REPOSITORIES 1 & 2: DATA & MODEL PIPELINES (Side-by-Side)
-    subgraph Repo1 ["Repository 1: Ingestion Service & Data Lake Store"]
+    %% REPOSITORIES 1, 2 & 4: DATA, MODEL, & ANALYTICS PIPELINES
+    subgraph Repo1 ["Repository 1: Ingestion & Data Lake"]
         Feeds["Ledger / Clicks / UPI / Bureau / CRM"] --> Ingest["Ingesting Influx Engine"]
         Ingest --> Lake[(Data Lake Store)]
     end
 
-    subgraph Repo2 ["Repository 2: ML Multi Model Core"]
+    subgraph Repo2 ["Repository 2: ML Model Core"]
         FE["Feature Engineering & Timestamps"]
         
         Income["Income Estimation Model"]
@@ -163,7 +146,6 @@ graph LR
         Conversion["Conversion Propensity Model"]
         History["Historical Conversion Model"]
         
-        %% Feature Engineering branches out to each model
         FE --> Income
         FE --> Intent
         FE --> LifeEvents
@@ -171,7 +153,6 @@ graph LR
         FE --> Conversion
         FE --> History
         
-        %% Models feed into Risk Underwriting Gate
         Income --> Risk{"Risk Gate Underwriting Filter"}
         Intent --> Risk
         LifeEvents --> Risk
@@ -182,23 +163,21 @@ graph LR
         Risk -->|Write Scores & Risk Status| RDS2[("AWS RDS Database (Postgres)")]
     end
 
-    %% Horizontal Side-by-Side Data Flow (Single entry point into Repo 2)
+    subgraph Repo4 ["Repository 4: Analytics & BI Sync"]
+        Sync["ETL & S3 Sync Engine"]
+        S3[("AWS S3 External Tables (Parquet)")]
+        DWH["Analytical DWH (Snowflake/Athena)"]
+        BI["Power BI Dashboard"]
+        
+        Sync --> S3
+        S3 --> DWH
+        DWH --> BI
+    end
+
+    %% Data Flows
     Lake -->|Asynchronous Event Inflow| FE
+    Lake -->|Bulk Sync Logs| Sync
 
-    %% Beautiful Professional Slate & Pastel Styling Definitions
-    classDef source fill:#f8fafc,stroke:#64748b,stroke-width:1.5px,color:#0f172a;
-    classDef server fill:#ecfeff,stroke:#0891b2,stroke-width:1.5px,color:#083344,font-weight:bold;
-    classDef database fill:#f0f9ff,stroke:#0284c7,stroke-width:1.5px,color:#0c4a6e;
-    classDef model fill:#f5f3ff,stroke:#7c3aed,stroke-width:1.5px,color:#2e1065;
-    classDef filter fill:#fff7ed,stroke:#ea580c,stroke-width:1.5px,color:#7c2d12,font-weight:bold;
-    classDef gateway fill:#f1f5f9,stroke:#64748b,stroke-width:1.5px,color:#0f172a;
-
-    class Feeds source;
-    class Ingest gateway;
-    class Lake,RDS2 database;
-    class FE server;
-    class Income,Intent,LifeEvents,RiskModel,Conversion,History model;
-    class Risk filter;
 ```
 
 ### Prospect AI Application (Prospect Assist AI: Behavioral Credit & Hyper-Targeted Lead Engine)
@@ -251,22 +230,6 @@ graph TD
         Worker --> WhatsApp
     end
 
-    %% Beautiful Professional Slate & Pastel Styling Definitions
-    classDef gateway fill:#f1f5f9,stroke:#64748b,stroke-width:1.5px,color:#0f172a;
-    classDef server fill:#ecfeff,stroke:#0891b2,stroke-width:2px,color:#083344,font-weight:bold;
-    classDef database fill:#f0f9ff,stroke:#0284c7,stroke-width:1.5px,color:#0c4a6e;
-    classDef presentation fill:#f5f3ff,stroke:#7c3aed,stroke-width:1.5px,color:#2e1065;
-    classDef queue fill:#fdf2f8,stroke:#db2777,stroke-width:1.5px,color:#500724;
-    classDef channel fill:#ecfdf5,stroke:#059669,stroke-width:1.5px,color:#064e3b;
-    classDef user fill:#e0e7ff,stroke:#4f46e5,stroke-width:1.5px,color:#1e1b4b,font-weight:bold;
-
-    class NGINX,Limits,LB gateway;
-    class AppServer server;
-    class RDS3,Redis database;
-    class UI,ABDashboard,TwinAnalyzer,Outreach,Portfolio,Campaign presentation;
-    class SQS,Worker queue;
-    class Email,SMS,Phone,WhatsApp channel;
-    class User,BM user;
 ```
 
 ### 🛡️ Core Infrastructure & Resilience Layers:
