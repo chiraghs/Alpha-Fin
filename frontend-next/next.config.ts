@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
   output: "export",
   basePath,
   images: { unoptimized: true },
+  // Emit routes as directory indexes (login/index.html) so static hosts
+  // (Render, S3, nginx) serve deep links natively — without this, /login
+  // falls through to the SPA rewrite and returns the wrong page shell.
+  trailingSlash: true,
 };
 
 export default nextConfig;
