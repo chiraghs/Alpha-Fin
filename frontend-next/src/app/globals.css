@@ -183,9 +183,9 @@ body {
 }
 
 /* ---------- scrollbars ----------
-   Inner scrollers (phone app, stream popup, tables) and the whole mobile
-   view scroll without any visible bar; the main page gets a hairline
-   brand-green bar on desktop. */
+   The app is viewport-locked (no page scroll); every region scrolls
+   internally. Bars are hidden everywhere except designated .inner-scroll
+   areas on desktop, which get a hairline brand-green bar. */
 * {
   scrollbar-width: none;
 }
@@ -195,19 +195,19 @@ body {
 }
 
 @media (min-width: 1024px) {
-  html {
+  .inner-scroll {
     scrollbar-width: thin;
-    scrollbar-color: var(--brand-green) transparent;
+    scrollbar-color: color-mix(in srgb, var(--brand-green) 55%, transparent) transparent;
   }
-  html::-webkit-scrollbar {
+  .inner-scroll::-webkit-scrollbar {
     width: 5px;
     height: 5px;
   }
-  html::-webkit-scrollbar-thumb {
-    background: var(--brand-green);
+  .inner-scroll::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--brand-green) 55%, transparent);
     border-radius: 999px;
   }
-  html::-webkit-scrollbar-track {
+  .inner-scroll::-webkit-scrollbar-track {
     background: transparent;
   }
 }

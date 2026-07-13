@@ -82,7 +82,7 @@ export function ManagerDashboard() {
 
   if (!session || !team) {
     return (
-      <div className="app-mesh flex min-h-screen items-center justify-center">
+      <div className="app-mesh flex h-dvh items-center justify-center">
         <span className="h-8 w-8 animate-spin rounded-full border-[3px] border-brand border-t-transparent" aria-label="Loading" />
       </div>
     );
@@ -92,31 +92,38 @@ export function ManagerDashboard() {
   const teamCohort = { treated: team.consolidated.treated, control: team.consolidated.control };
 
   return (
-    <div className="app-mesh min-h-screen">
+    <div className="app-mesh flex h-dvh flex-col overflow-hidden">
       <Header mode={mode} onReset={handleReset} resetting={resetting} session={session} onLogout={handleLogout} />
 
-      <main className="mx-auto flex max-w-[1700px] flex-col gap-5 px-4 pb-16 pt-5 sm:px-6">
-        <div className="rise-in">
-          <h2 className="flex items-center gap-2 text-base font-extrabold text-ink">
-            <Chart width={16} height={16} className="text-brand" /> Branch Manager · Team Command Center
+      {/* viewport-locked cockpit — each column scrolls internally */}
+      <main className="mx-auto flex min-h-0 w-full max-w-[1700px] flex-1 flex-col gap-2.5 px-3 pb-3 pt-2.5 sm:px-5">
+        <div className="rise-in flex shrink-0 flex-wrap items-baseline gap-x-3 gap-y-0.5">
+          <h2 className="flex items-center gap-2 text-sm font-extrabold text-ink">
+            <Chart width={15} height={15} className="text-brand" /> Branch Manager · Team Command Center
           </h2>
-          <p className="mt-0.5 text-xs text-ink-muted">
-            Consolidated performance, target attainment and AI coaching across {team.consolidated.active_rms} relationship managers
+          <p className="text-[11px] text-ink-muted">
+            Consolidated performance, attainment and AI coaching · {team.consolidated.active_rms} RMs
           </p>
         </div>
 
-        <div className="rise-in-1">
+        <div className="rise-in-1 shrink-0">
           <TeamOverview c={team.consolidated} forecast={team.forecast} />
         </div>
 
-        <div className="rise-in-2 grid gap-5 lg:grid-cols-2">
-          <AISummaryCard summary={team.ai_summary} c={team.consolidated} />
-          <CampaignLift perf={teamCohort} />
-        </div>
+        <div className="rise-in-2 grid min-h-0 flex-1 gap-2.5 lg:grid-cols-[1.35fr_1fr]">
+          {/* left: briefing + lift + leaderboard share one scroller
+              (on mobile the selected RM's scorecard joins the same scroller) */}
+          <div className="inner-scroll flex min-h-0 flex-col gap-2.5 overflow-y-auto pr-0.5">
+            <AISummaryCard summary={team.ai_summary} c={team.consolidated} />
+            <CampaignLift perf={teamCohort} />
+            <RMLeaderboard rms={team.rms} selectedId={selected.id} onSelect={setSelectedId} />
+            <div className="shrink-0 lg:hidden">
+              <RMDetailPanel rm={selected} />
+            </div>
+          </div>
 
-        <div className="rise-in-3 grid items-start gap-5 lg:grid-cols-[1.35fr_1fr]">
-          <RMLeaderboard rms={team.rms} selectedId={selected.id} onSelect={setSelectedId} />
-          <div className="lg:sticky lg:top-[92px]">
+          {/* right: individual scorecard scroller */}
+          <div className="inner-scroll hidden min-h-0 overflow-y-auto pr-0.5 lg:block">
             <RMDetailPanel rm={selected} />
           </div>
         </div>
