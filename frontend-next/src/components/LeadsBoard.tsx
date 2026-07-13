@@ -28,12 +28,14 @@ export function LeadsBoard({
   threshold,
   onThreshold,
   onOutreach,
+  onInspect,
   flashIds,
 }: {
   leads: Lead[];
   threshold: number; // 0-1
   onThreshold: (v: number) => void;
   onOutreach: (lead: Lead) => void;
+  onInspect: (customerId: number) => void; // open the customer's Behavioral Twin
   flashIds: Set<number>;
 }) {
   const [query, setQuery] = useState("");
@@ -139,13 +141,22 @@ export function LeadsBoard({
               className={`shrink-0 rounded-2xl border border-hairline bg-surface-2 p-3.5 ${flashIds.has(lead.id) ? "flash-row" : ""}`}
             >
               <div className="flex items-center gap-3">
-                <ScoreRing value={lead.propensity_score * 100} size={44} label={`LRI for ${lead.customer.name}`} />
-                <div className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-extrabold text-ink">{lead.customer.name}</span>
-                  <span className="text-[11px] text-ink-muted">
-                    {lead.loan_type} · CIBIL {lead.customer.credit_score}
-                  </span>
-                </div>
+                <button
+                  onClick={() => onInspect(lead.customer_id)}
+                  className="group flex min-w-0 flex-1 items-center gap-3 text-left"
+                  title={`Inspect ${lead.customer.name}'s Behavioral Twin`}
+                >
+                  <ScoreRing value={lead.propensity_score * 100} size={44} label={`LRI for ${lead.customer.name}`} />
+                  <div className="min-w-0 flex-1">
+                    <span className="flex items-center gap-1 truncate text-sm font-extrabold text-ink transition group-hover:text-brand">
+                      {lead.customer.name}
+                      <Chevron width={12} height={12} className="shrink-0 text-ink-muted transition group-hover:text-brand" />
+                    </span>
+                    <span className="text-[11px] text-ink-muted">
+                      {lead.loan_type} · CIBIL {lead.customer.credit_score}
+                    </span>
+                  </div>
+                </button>
                 <IntentChip level={lead.intent_level} />
               </div>
 
@@ -213,13 +224,20 @@ export function LeadsBoard({
                   className={`border-t border-hairline transition hover:bg-surface-2 ${flashIds.has(lead.id) ? "flash-row" : ""}`}
                 >
                   <td className="px-3.5 py-2">
-                    <div className="flex items-center gap-2.5">
+                    <button
+                      onClick={() => onInspect(lead.customer_id)}
+                      className="group flex items-center gap-2.5 text-left"
+                      title={`Inspect ${lead.customer.name}'s Behavioral Twin`}
+                    >
                       <Avatar name={lead.customer.name} size={30} />
                       <div className="min-w-0">
-                        <span className="block truncate text-[13px] font-extrabold text-ink">{lead.customer.name}</span>
+                        <span className="flex items-center gap-1 truncate text-[13px] font-extrabold text-ink transition group-hover:text-brand">
+                          {lead.customer.name}
+                          <Chevron width={11} height={11} className="shrink-0 text-ink-muted opacity-0 transition group-hover:text-brand group-hover:opacity-100" />
+                        </span>
                         <span className="block text-[10px] text-ink-muted">{lead.customer.account_number}</span>
                       </div>
-                    </div>
+                    </button>
                   </td>
                   <td className="px-3.5 py-2">
                     <span className="text-[12px] font-semibold text-ink-secondary">{lead.loan_type}</span>
