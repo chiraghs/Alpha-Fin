@@ -16,7 +16,8 @@ import {
 import { ActivityFeed } from "./ActivityFeed";
 import { CampaignLift } from "./CampaignLift";
 import { Header } from "./Header";
-import { Chart, Flame, List, Phone, Users } from "./Icons";
+import { InsightHero } from "./InsightHero";
+import { Chart, List, Phone, Users } from "./Icons";
 import { LeadsBoard } from "./LeadsBoard";
 import { OutreachModal } from "./OutreachModal";
 import { PhoneSimulator, SimulatorActions } from "./PhoneSimulator";
@@ -211,19 +212,19 @@ export function Dashboard() {
   if (!session) {
     // brief splash while the auth check runs (or redirect is in flight)
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="app-mesh flex min-h-screen items-center justify-center">
         <span className="h-8 w-8 animate-spin rounded-full border-[3px] border-brand border-t-transparent" aria-label="Loading" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="app-mesh min-h-screen">
       <Header mode={mode} onReset={handleReset} resetting={resetting} session={session} onLogout={handleLogout} />
 
       <main className="mx-auto grid max-w-[1700px] gap-5 px-4 pb-24 pt-5 sm:px-6 lg:grid-cols-[minmax(340px,400px)_1fr] lg:pb-5">
         {/* LEFT: customer portal simulator (mobile: shown on the "sim" panel) */}
-        <div className={`${mobilePanel === "sim" ? "flex" : "hidden"} flex-col gap-4 lg:flex`}>
+        <div className={`${mobilePanel === "sim" ? "flex" : "hidden"} rise-in flex-col gap-4 lg:flex`}>
           <SectionTitle
             Icon={Phone}
             title="Customer Portal Simulator"
@@ -241,31 +242,19 @@ export function Dashboard() {
             sub="Real-time underwriting feed, propensity tracking and AI campaign triggers"
           />
 
-          {/* KPI row */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <StatTile label="Qualified leads" value={String(qualified.length)} note={`≥ ${Math.round(threshold * 100)}% LRI`} />
-            <StatTile
-              label="Hot leads"
-              value={String(hotCount)}
-              note="ready for outreach"
-              icon={<Flame width={14} height={14} className="text-accent" />}
-            />
-            <StatTile
-              label="Conversion target"
-              value=">30%"
-              note="Track 02 benchmark"
-              className="col-span-2 sm:col-span-1"
-            />
+          {/* hero: conversion lift + pipeline counters */}
+          <div className="rise-in-1">
+            <InsightHero perf={perf} qualified={qualified.length} hot={hotCount} threshold={threshold} />
           </div>
 
           {/* tabs */}
-          <div className="flex gap-1 rounded-xl bg-surface-2 p-1">
+          <div className="rise-in-2 flex gap-1 rounded-2xl bg-surface-2 p-1">
             <TabButton active={tab === "leads"} onClick={() => setTab("leads")} Icon={List} label="Prioritized Leads & Outreach" />
             <TabButton active={tab === "portfolio"} onClick={() => setTab("portfolio")} Icon={Users} label="Customer Twin Portfolio" />
           </div>
 
           {tab === "leads" ? (
-            <div className="flex flex-col gap-4">
+            <div className="rise-in-3 flex flex-col gap-4">
               <CampaignLift perf={perf} />
               <LeadsBoard
                 leads={leads}
@@ -320,31 +309,6 @@ function SectionTitle({ Icon, title, sub }: { Icon: typeof Phone; title: string;
         <Icon width={16} height={16} className="text-brand" /> {title}
       </h2>
       <p className="mt-0.5 text-xs text-ink-muted">{sub}</p>
-    </div>
-  );
-}
-
-function StatTile({
-  label,
-  value,
-  note,
-  icon,
-  className = "",
-}: {
-  label: string;
-  value: string;
-  note: string;
-  icon?: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <div className={`card px-4 py-3.5 ${className}`}>
-      <span className="flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-wider text-ink-muted">
-        {icon}
-        {label}
-      </span>
-      <span className="mt-1 block text-2xl font-extrabold leading-none text-ink">{value}</span>
-      <span className="mt-1 block text-[10.5px] text-ink-muted">{note}</span>
     </div>
   );
 }

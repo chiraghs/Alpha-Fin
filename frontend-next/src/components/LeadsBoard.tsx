@@ -3,6 +3,8 @@
 import { Lead } from "@/lib/types";
 import { inr, inrCompact } from "@/lib/format";
 import { Bolt, Flame, Sparkles } from "./Icons";
+import { Avatar } from "./Avatar";
+import { ScoreRing } from "./charts/ScoreRing";
 
 export function LeadsBoard({
   leads,
@@ -23,10 +25,13 @@ export function LeadsBoard({
   return (
     <div className="card overflow-hidden">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-hairline px-5 py-4">
-        <h3 className="text-sm font-bold text-ink">Prioritized leads</h3>
+        <div>
+          <h3 className="text-sm font-extrabold text-ink">Prioritized leads</h3>
+          <span className="text-[11px] text-ink-muted">Ranked by Loan Readiness Index · risk-gated</span>
+        </div>
         <div className="flex items-center gap-3">
-          <label htmlFor="threshold" className="text-xs font-medium text-ink-secondary">
-            Min LRI score <strong className="tabular-nums text-ink">{sliderPct}%</strong>
+          <label htmlFor="threshold" className="text-xs font-semibold text-ink-secondary">
+            Min LRI <strong className="tabular-nums text-ink">{sliderPct}%</strong>
           </label>
           <input
             id="threshold"
@@ -45,38 +50,27 @@ export function LeadsBoard({
       {/* mobile: stacked lead cards */}
       <div className="flex flex-col gap-3 p-4 md:hidden">
         {filtered.length === 0 ? (
-          <p className="py-6 text-center text-xs text-ink-muted">
-            No active leads clear the {sliderPct}% threshold. Slide the filter down to inspect colder prospects.
-          </p>
+          <EmptyState pct={sliderPct} />
         ) : (
           filtered.map((lead) => (
             <div
               key={lead.id}
-              className={`rounded-xl border border-hairline bg-surface-2 p-3.5 ${flashIds.has(lead.id) ? "flash-row" : ""}`}
+              className={`rounded-2xl border border-hairline bg-surface-2 p-4 ${flashIds.has(lead.id) ? "flash-row" : ""}`}
             >
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <span className="block text-sm font-bold text-ink">{lead.customer.name}</span>
+              <div className="flex items-center gap-3">
+                <ScoreRing value={lead.propensity_score * 100} size={48} label={`LRI for ${lead.customer.name}`} />
+                <div className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-extrabold text-ink">{lead.customer.name}</span>
                   <span className="text-[11px] text-ink-muted">
                     {lead.loan_type} · CIBIL {lead.customer.credit_score}
                   </span>
                 </div>
-                <IntentBadge level={lead.intent_level} score={lead.propensity_score} />
+                <IntentChip level={lead.intent_level} />
               </div>
 
-              <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-                    lead.cohort === "Treated" ? "bg-brand-soft text-brand-strong" : "bg-surface-3 text-ink-muted"
-                  }`}
-                >
-                  {lead.cohort}
-                </span>
-                {(lead.intent_velocity ?? 0) >= 15 && (
-                  <span className="flex items-center gap-1 rounded-full bg-critical/10 px-2 py-0.5 text-[10px] font-bold uppercase text-critical">
-                    <Bolt width={10} height={10} /> Call now
-                  </span>
-                )}
+              <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                <CohortChip cohort={lead.cohort} />
+                {(lead.intent_velocity ?? 0) >= 15 && <VelocityChip velocity={lead.intent_velocity!} />}
                 {lead.life_events && lead.life_events.length > 0 && (
                   <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-semibold text-accent-strong">
                     {lead.life_events[0].icon} {lead.life_events[0].label.split(" (")[0]}
@@ -84,20 +78,20 @@ export function LeadsBoard({
                 )}
               </div>
 
-              <div className="mt-3 flex items-end justify-between gap-2">
-                <div className="flex gap-4">
+              <div className="mt-3 flex items-end justify-between gap-2 border-t border-dashed border-hairline pt-3">
+                <div className="flex gap-5">
                   <div>
-                    <span className="block text-[9.5px] font-semibold uppercase tracking-wide text-ink-muted">Disposable</span>
-                    <span className="text-xs font-bold tabular-nums text-ink">{inr(lead.calculated_disposable_income)}</span>
+                    <span className="block text-[9.5px] font-bold uppercase tracking-wide text-ink-muted">Disposable</span>
+                    <span className="text-xs font-extrabold tabular-nums text-ink">{inr(lead.calculated_disposable_income)}</span>
                   </div>
                   <div>
-                    <span className="block text-[9.5px] font-semibold uppercase tracking-wide text-ink-muted">Eligible</span>
-                    <span className="text-xs font-bold tabular-nums text-brand">{inrCompact(lead.eligible_loan_amount)}</span>
+                    <span className="block text-[9.5px] font-bold uppercase tracking-wide text-ink-muted">Eligible</span>
+                    <span className="text-xs font-extrabold tabular-nums text-brand">{inrCompact(lead.eligible_loan_amount)}</span>
                   </div>
                 </div>
                 <button
                   onClick={() => onOutreach(lead)}
-                  className="flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-bold text-white"
+                  className="flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-extrabold text-white active:scale-95"
                   style={{ background: "var(--brand-gradient)" }}
                 >
                   <Sparkles width={12} height={12} /> Outreach
@@ -110,11 +104,11 @@ export function LeadsBoard({
 
       {/* desktop: full table */}
       <div className="hidden overflow-x-auto md:block">
-        <table className="w-full min-w-[860px] text-left text-sm">
+        <table className="w-full min-w-[880px] text-left text-sm">
           <thead>
             <tr className="text-[10.5px] uppercase tracking-wider text-ink-muted">
               {["Customer", "Target product", "Disposable income", "CIBIL", "Readiness (LRI)", "Cohort", "Eligible limit", ""].map((h, i) => (
-                <th key={i} className="px-5 py-3 font-bold">
+                <th key={i} className="px-5 py-3 font-extrabold">
                   {h}
                 </th>
               ))}
@@ -123,9 +117,8 @@ export function LeadsBoard({
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-5 py-10 text-center text-xs text-ink-muted">
-                  No active leads clear the {sliderPct}% qualification threshold. Slide the filter down to inspect
-                  colder prospects.
+                <td colSpan={8}>
+                  <EmptyState pct={sliderPct} />
                 </td>
               </tr>
             ) : (
@@ -135,8 +128,13 @@ export function LeadsBoard({
                   className={`border-t border-hairline transition hover:bg-surface-2 ${flashIds.has(lead.id) ? "flash-row" : ""}`}
                 >
                   <td className="px-5 py-3.5">
-                    <span className="font-bold text-ink">{lead.customer.name}</span>
-                    <span className="block text-[10.5px] text-ink-muted">{lead.customer.account_number}</span>
+                    <div className="flex items-center gap-3">
+                      <Avatar name={lead.customer.name} size={36} />
+                      <div>
+                        <span className="block font-extrabold text-ink">{lead.customer.name}</span>
+                        <span className="block text-[10.5px] text-ink-muted">{lead.customer.account_number}</span>
+                      </div>
+                    </div>
                   </td>
                   <td className="px-5 py-3.5">
                     <span className="font-semibold text-ink-secondary">{lead.loan_type}</span>
@@ -150,34 +148,26 @@ export function LeadsBoard({
                     )}
                   </td>
                   <td className="px-5 py-3.5 tabular-nums text-ink-secondary">{inr(lead.calculated_disposable_income)}</td>
-                  <td className="px-5 py-3.5 tabular-nums font-semibold text-ink-secondary">{lead.customer.credit_score}</td>
+                  <td className="px-5 py-3.5 tabular-nums font-bold text-ink-secondary">{lead.customer.credit_score}</td>
                   <td className="px-5 py-3.5">
-                    <IntentBadge level={lead.intent_level} score={lead.propensity_score} />
-                    {(lead.intent_velocity ?? 0) >= 15 && (
-                      <span
-                        className="mt-1 flex w-fit items-center gap-1 rounded-full bg-critical/10 px-2 py-0.5 text-[10px] font-bold uppercase text-critical"
-                        title={`Intent velocity +${lead.intent_velocity}% in 7 days`}
-                      >
-                        <Bolt width={10} height={10} /> Call now
-                      </span>
-                    )}
+                    <div className="flex items-center gap-2.5">
+                      <ScoreRing value={lead.propensity_score * 100} size={44} label={`LRI for ${lead.customer.name}`} />
+                      <div className="flex flex-col gap-1">
+                        <IntentChip level={lead.intent_level} />
+                        {(lead.intent_velocity ?? 0) >= 15 && <VelocityChip velocity={lead.intent_velocity!} />}
+                      </div>
+                    </div>
                   </td>
                   <td className="px-5 py-3.5">
-                    <span
-                      className={`rounded-full px-2.5 py-1 text-[10.5px] font-bold uppercase tracking-wide ${
-                        lead.cohort === "Treated" ? "bg-brand-soft text-brand-strong" : "bg-surface-3 text-ink-muted"
-                      }`}
-                    >
-                      {lead.cohort}
-                    </span>
+                    <CohortChip cohort={lead.cohort} />
                   </td>
-                  <td className="px-5 py-3.5 font-bold tabular-nums text-brand" title={inr(lead.eligible_loan_amount)}>
+                  <td className="px-5 py-3.5 font-extrabold tabular-nums text-brand" title={inr(lead.eligible_loan_amount)}>
                     {inrCompact(lead.eligible_loan_amount)}
                   </td>
                   <td className="px-5 py-3.5">
                     <button
                       onClick={() => onOutreach(lead)}
-                      className="flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold text-white transition hover:opacity-90"
+                      className="lift flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-extrabold text-white"
                       style={{ background: "var(--brand-gradient)" }}
                     >
                       <Sparkles width={12} height={12} /> Outreach
@@ -193,21 +183,47 @@ export function LeadsBoard({
   );
 }
 
-function IntentBadge({ level, score }: { level: "Hot" | "Warm" | "Cold"; score: number }) {
-  const pctVal = Math.round(score * 100);
+function EmptyState({ pct }: { pct: number }) {
+  return (
+    <p className="px-5 py-10 text-center text-xs text-ink-muted">
+      No active leads clear the {pct}% qualification threshold. Slide the filter down to inspect colder prospects.
+    </p>
+  );
+}
+
+function IntentChip({ level }: { level: "Hot" | "Warm" | "Cold" }) {
   if (level === "Hot") {
     return (
-      <span className="flex w-fit items-center gap-1.5 rounded-full bg-accent-soft px-2.5 py-1 text-[11px] font-bold text-accent-strong">
-        <Flame width={11} height={11} className="pulse-dot" /> Hot · {pctVal}%
+      <span className="flex w-fit items-center gap-1 rounded-full bg-accent-soft px-2.5 py-0.5 text-[10.5px] font-extrabold text-accent-strong">
+        <Flame width={10} height={10} className="pulse-dot" /> Hot
       </span>
     );
   }
   if (level === "Warm") {
-    return (
-      <span className="w-fit rounded-full bg-warning/15 px-2.5 py-1 text-[11px] font-bold text-ink-secondary">
-        Warm · {pctVal}%
-      </span>
-    );
+    return <span className="w-fit rounded-full bg-warning/15 px-2.5 py-0.5 text-[10.5px] font-extrabold text-ink-secondary">Warm</span>;
   }
-  return <span className="w-fit rounded-full bg-surface-3 px-2.5 py-1 text-[11px] font-bold text-ink-muted">Cold · {pctVal}%</span>;
+  return <span className="w-fit rounded-full bg-surface-3 px-2.5 py-0.5 text-[10.5px] font-extrabold text-ink-muted">Cold</span>;
+}
+
+function CohortChip({ cohort }: { cohort: "Treated" | "Control" }) {
+  return (
+    <span
+      className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide ${
+        cohort === "Treated" ? "bg-brand-soft text-brand-strong" : "bg-surface-3 text-ink-muted"
+      }`}
+    >
+      {cohort}
+    </span>
+  );
+}
+
+function VelocityChip({ velocity }: { velocity: number }) {
+  return (
+    <span
+      className="flex w-fit items-center gap-1 rounded-full bg-critical/10 px-2 py-0.5 text-[10px] font-extrabold uppercase text-critical"
+      title={`Intent velocity +${velocity}% in 7 days`}
+    >
+      <Bolt width={10} height={10} /> Call now
+    </span>
+  );
 }

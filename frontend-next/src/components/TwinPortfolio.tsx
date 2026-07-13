@@ -6,8 +6,10 @@ import { Customer, CustomerTwinProfile, LoanType, LOAN_TYPES, ProductTwin } from
 import { inr, pct } from "@/lib/format";
 import { Meter } from "./charts/Meter";
 import { TwinRadar } from "./charts/TwinRadar";
+import { ScoreRing } from "./charts/ScoreRing";
 import { Alert, Brain, Check } from "./Icons";
 import { useToast } from "./Toast";
+import { Avatar } from "./Avatar";
 
 const PRODUCT_EMOJI: Record<LoanType, string> = {
   "Auto Loan": "🚗",
@@ -58,15 +60,18 @@ export function TwinPortfolio({ customers }: { customers: Customer[] }) {
             <button
               key={c.id}
               onClick={() => loadProfile(c.id)}
-              className={`rounded-lg px-3 py-2.5 text-left transition ${
+              className={`flex items-center gap-2.5 rounded-2xl px-3 py-2.5 text-left transition ${
                 selectedId === c.id ? "bg-brand-soft" : "hover:bg-surface-2"
               }`}
             >
-              <span className={`block text-sm font-bold ${selectedId === c.id ? "text-brand-strong" : "text-ink"}`}>
-                {c.name}
-              </span>
-              <span className="block text-[10.5px] text-ink-muted">
-                CIBIL {c.credit_score} · {inr(c.gross_monthly_income)}/mo
+              <Avatar name={c.name} size={32} />
+              <span className="min-w-0">
+                <span className={`block truncate text-sm font-bold ${selectedId === c.id ? "text-brand-strong" : "text-ink"}`}>
+                  {c.name}
+                </span>
+                <span className="block text-[10.5px] text-ink-muted">
+                  CIBIL {c.credit_score} · {inr(c.gross_monthly_income)}/mo
+                </span>
               </span>
             </button>
           ))}
@@ -80,9 +85,12 @@ export function TwinPortfolio({ customers }: { customers: Customer[] }) {
         ) : (
           <>
             <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <h3 className="text-lg font-extrabold text-ink">{profile.name}</h3>
-                <span className="text-xs text-ink-muted">A/C {profile.account_number} · CIBIL {profile.credit_score}</span>
+              <div className="flex items-center gap-3">
+                <Avatar name={profile.name} size={44} />
+                <div>
+                  <h3 className="text-lg font-extrabold text-ink">{profile.name}</h3>
+                  <span className="text-xs text-ink-muted">A/C {profile.account_number} · CIBIL {profile.credit_score}</span>
+                </div>
               </div>
               <RiskBadge tier={twin.risk_evaluation.risk_tier} />
             </div>
@@ -106,16 +114,18 @@ export function TwinPortfolio({ customers }: { customers: Customer[] }) {
 
             <div className="grid gap-6 xl:grid-cols-[300px_1fr]">
               {/* fingerprint + LRI hero */}
-              <div className="flex flex-col items-center gap-2">
+              <div className="flex flex-col items-center gap-3">
                 <TwinRadar twin={twin.financial_twin} />
-                <div className="text-center">
-                  <span className="block text-[11px] font-semibold uppercase tracking-wide text-ink-muted">
-                    Loan Readiness Index
-                  </span>
-                  <span className="text-5xl font-extrabold leading-tight text-brand">
-                    {(twin.composite_lead_score * 100).toFixed(0)}
-                    <span className="text-2xl">%</span>
-                  </span>
+                <div className="flex items-center gap-3 rounded-2xl border border-hairline bg-surface-2 px-4 py-3">
+                  <ScoreRing value={twin.composite_lead_score * 100} size={56} label="Loan readiness index" />
+                  <div>
+                    <span className="block text-[11px] font-extrabold uppercase tracking-wide text-ink-muted">
+                      Loan Readiness
+                    </span>
+                    <span className="block text-[11px] text-ink-muted">
+                      Index for {product.toLowerCase()} outreach
+                    </span>
+                  </div>
                 </div>
               </div>
 
