@@ -53,12 +53,123 @@ const state: EngineState = {
 
 // ---------- seeding ----------
 
+// Data-driven roster — kept in lockstep with backend/seed.py so live and
+// standalone modes show the same customers. Each profile emits salary +
+// commitments, recent trigger transactions (intent + life-event signals) and a
+// clickstream journey; every lead's readiness is then computed from this engine.
+type Journey = "apply" | "calc" | "view";
+interface SeedProfile {
+  name: string;
+  email: string;
+  mobile: string;
+  acct: string;
+  income: number;
+  credit: number;
+  product: LoanType;
+  journey: Journey;
+  promo: boolean;
+  commits: [string, string, number][]; // category, description, amount
+  triggers: [string, string, number, number][]; // category, description, amount, daysAgo
+  second?: string; // "Product:kind"
+}
+
+const VIEW_SLUG: Record<LoanType, string> = {
+  "Auto Loan": "/auto-loan",
+  "Home Loan": "/home-loan",
+  "Personal Loan": "/personal-loan",
+  "Mortgage Loan": "/mortgage-loan",
+};
+const CALC_SLUG: Record<LoanType, string> = {
+  "Auto Loan": "/auto-loan/emi-calculator",
+  "Home Loan": "/home-loan/calculator",
+  "Personal Loan": "/personal-loan/emi-calculator",
+  "Mortgage Loan": "/mortgage-loan/calculator",
+};
+
+function journeyClicks(product: LoanType, kind: Journey): [string, string, number, number][] {
+  const v = VIEW_SLUG[product];
+  const c = CALC_SLUG[product];
+  if (kind === "apply") return [[v, "VIEW", 60, 3], [c, "CALCULATE_EMI", 140, 3], [v, "CLICK_APPLY", 6, 2]];
+  if (kind === "calc") return [[v, "VIEW", 55, 4], [c, "CALCULATE_EMI", 90, 3]];
+  return [[v, "VIEW", 40, 5], [v, "VIEW", 50, 2]];
+}
+
+const SEED_PROFILES: SeedProfile[] = [
+  { name: "Aarav Mehta", email: "aarav.mehta@example.com", mobile: "+919876543210", acct: "IDBI100892931", income: 95000, credit: 780, product: "Auto Loan", journey: "apply", promo: true,
+    commits: [["Rent", "RENT TRANSFER / APARTMENT", 25000], ["SIP", "SIP DEBIT / HDFC MUTUAL FUND", 10000], ["Utility", "TATA POWER ELECTRICITY BILL", 3500]],
+    triggers: [["Shopping", "MARUTI SUZUKI SHOWROOM BOOKING", 30000, 6], ["Insurance", "ICICI LOMBARD MOTORS INSURANCE", 18500, 9]], second: "Home Loan:calc" },
+  { name: "Priya Sharma", email: "priya.sharma@example.com", mobile: "+919876543211", acct: "IDBI100482932", income: 150000, credit: 810, product: "Home Loan", journey: "apply", promo: true,
+    commits: [["Rent", "RENT DEBIT / SOCIETY BANK", 35000], ["EMI", "HDFC CAR LOAN AUTO EMI", 15000], ["SIP", "SIP DEBIT / NIPPON INDIA FUND", 20000], ["Utility", "ACT FIBERNET & GAS UTILITY", 8000]],
+    triggers: [["Shopping", "IKEA FURNITURE MUMBAI IN", 65000, 12], ["Rent", "NOBROKER RENTAL DEPOSIT & BROKERAGE", 90000, 10]], second: "Personal Loan:calc" },
+  { name: "Vikram Singh", email: "vikram.singh@example.com", mobile: "+919876543212", acct: "IDBI100382933", income: 55000, credit: 640, product: "Personal Loan", journey: "calc", promo: false,
+    commits: [["SIP", "SIP DEBIT / AXIS MUTUAL FUND", 5000], ["Transfer", "FAMILY TRANSFER", 15000], ["Utility", "PHONE & BROADBAND BILLS", 2200]],
+    triggers: [["Penalty", "IDBI CC BILL LATE FEE CHARGE", 1200, 8], ["Penalty", "CHEQUE BOUNCE CHG", 500, 5], ["Shopping", "FLIPKART INTERNET DEBIT", 18000, 14]] },
+  { name: "Ananya Desai", email: "ananya.desai@example.com", mobile: "+919812300001", acct: "IDBI200100001", income: 120000, credit: 730, product: "Home Loan", journey: "apply", promo: false,
+    commits: [["SIP", "SIP DEBIT / SBI BLUECHIP FUND", 12000], ["Utility", "BESCOM ELECTRICITY BILL", 4000], ["Rent", "RENT TRANSFER / WHITEFIELD", 30000]],
+    triggers: [["Rent", "NOBROKER RENTAL DEPOSIT", 80000, 7], ["Shopping", "ASIAN PAINTS HOME DECOR", 25000, 11]], second: "Auto Loan:view" },
+  { name: "Rohan Kapoor", email: "rohan.kapoor@example.com", mobile: "+919812300002", acct: "IDBI200100002", income: 180000, credit: 800, product: "Auto Loan", journey: "apply", promo: true,
+    commits: [["SIP", "SIP DEBIT / PARAG PARIKH FUND", 18000], ["Utility", "TATA POWER & GAS BILL", 5000]],
+    triggers: [["Shopping", "TATA MOTORS SHOWROOM BOOKING", 40000, 5], ["Insurance", "HDFC ERGO MOTORS INSURANCE", 22000, 9]] },
+  { name: "Sneha Reddy", email: "sneha.reddy@example.com", mobile: "+919812300003", acct: "IDBI200100003", income: 85000, credit: 760, product: "Personal Loan", journey: "apply", promo: false,
+    commits: [["SIP", "SIP DEBIT / MIRAE ASSET FUND", 8000], ["Utility", "TSSPDCL ELECTRICITY BILL", 3000], ["Rent", "RENT DEBIT / GACHIBOWLI", 20000]],
+    triggers: [["Shopping", "TANISHQ JEWELLERS WEDDING", 120000, 6], ["Shopping", "BANQUET HALL BOOKING MARRIAGE", 45000, 10]] },
+  { name: "Karthik Nair", email: "karthik.nair@example.com", mobile: "+919812300004", acct: "IDBI200100004", income: 250000, credit: 790, product: "Mortgage Loan", journey: "calc", promo: true,
+    commits: [["SIP", "SIP DEBIT / AXIS BLUECHIP", 25000], ["Utility", "ADANI ELECTRICITY BILL", 7000]],
+    triggers: [["Shopping", "PRESTIGE BUILDER PART PAYMENT", 150000, 8], ["Shopping", "ARCHITECT DESIGN CONSULTANCY FEE", 60000, 12]] },
+  { name: "Meera Joshi", email: "meera.joshi@example.com", mobile: "+919812300005", acct: "IDBI200100005", income: 70000, credit: 700, product: "Personal Loan", journey: "apply", promo: false,
+    commits: [["SIP", "SIP DEBIT / UTI NIFTY FUND", 5000], ["Utility", "MSEB ELECTRICITY BILL", 2500], ["Rent", "RENT DEBIT / KOTHRUD", 18000]],
+    triggers: [["Shopping", "DPS SCHOOL TUITION FEE", 45000, 7], ["Penalty", "OVERDRAFT INTEREST DEBIT", 800, 9]] },
+  { name: "Arjun Rao", email: "arjun.rao@example.com", mobile: "+919812300006", acct: "IDBI200100006", income: 90000, credit: 680, product: "Auto Loan", journey: "calc", promo: false,
+    commits: [["SIP", "SIP DEBIT / CANARA ROBECO", 7000], ["Utility", "BESCOM ELECTRICITY BILL", 3000], ["Rent", "RENT DEBIT / HSR LAYOUT", 22000]],
+    triggers: [["Shopping", "HYUNDAI SHOWROOM VISIT BOOKING", 20000, 8]] },
+  { name: "Divya Menon", email: "divya.menon@example.com", mobile: "+919812300007", acct: "IDBI200100007", income: 160000, credit: 810, product: "Home Loan", journey: "apply", promo: true,
+    commits: [["SIP", "SIP DEBIT / QUANT ACTIVE FUND", 16000], ["Utility", "KSEB ELECTRICITY BILL", 6000]],
+    triggers: [["Shopping", "IKEA FURNITURE & INTERIOR", 70000, 6], ["Rent", "HOUSING SOCIETY DEPOSIT BROKERAGE", 100000, 10]], second: "Mortgage Loan:calc" },
+  { name: "Rahul Verma", email: "rahul.verma@example.com", mobile: "+919812300008", acct: "IDBI200100008", income: 45000, credit: 610, product: "Personal Loan", journey: "view", promo: false,
+    commits: [["Utility", "PVVNL ELECTRICITY BILL", 2000], ["Transfer", "FAMILY TRANSFER", 12000]],
+    triggers: [["Penalty", "CC BILL LATE FEE CHARGE", 1500, 5], ["Penalty", "CHEQUE BOUNCE CHG", 500, 9], ["Penalty", "OVERDRAFT PENALTY DEBIT", 700, 12]] },
+  { name: "Ishita Shah", email: "ishita.shah@example.com", mobile: "+919812300009", acct: "IDBI200100009", income: 300000, credit: 830, product: "Mortgage Loan", journey: "apply", promo: true,
+    commits: [["SIP", "SIP DEBIT / PPFAS FLEXICAP", 30000], ["Utility", "TORRENT POWER BILL", 8000]],
+    triggers: [["Shopping", "PRESTIGE BUILDER PART PAYMENT", 200000, 7], ["Shopping", "INTERIOR DECOR ARCHITECT FEE", 80000, 11]] },
+  { name: "Aditya Kumar", email: "aditya.kumar@example.com", mobile: "+919812300010", acct: "IDBI200100010", income: 110000, credit: 750, product: "Auto Loan", journey: "apply", promo: false,
+    commits: [["SIP", "SIP DEBIT / ICICI PRU FUND", 10000], ["Utility", "BSES ELECTRICITY BILL", 4000], ["Rent", "RENT DEBIT / DWARKA", 25000]],
+    triggers: [["Shopping", "MARUTI NEXA SHOWROOM BOOKING", 35000, 6], ["Insurance", "CAR SERVICE & INSURANCE RENEWAL", 12000, 10]] },
+  { name: "Pooja Iyer", email: "pooja.iyer@example.com", mobile: "+919812300011", acct: "IDBI200100011", income: 95000, credit: 730, product: "Home Loan", journey: "calc", promo: false,
+    commits: [["SIP", "SIP DEBIT / KOTAK EMERGING", 9000], ["Utility", "TANGEDCO ELECTRICITY BILL", 3500], ["Rent", "RENT DEBIT / ADYAR", 24000]],
+    triggers: [["Shopping", "IKEA HOME DECOR PURCHASE", 40000, 9], ["Rent", "NOBROKER RENTAL DEPOSIT", 70000, 12]] },
+  { name: "Nikhil Gupta", email: "nikhil.gupta@example.com", mobile: "+919812300012", acct: "IDBI200100012", income: 130000, credit: 770, product: "Personal Loan", journey: "apply", promo: false,
+    commits: [["SIP", "SIP DEBIT / DSP MIDCAP", 12000], ["Utility", "BESCOM & GAS UTILITY", 4500], ["Rent", "RENT DEBIT / INDIRANAGAR", 28000]],
+    triggers: [["Shopping", "KALYAN JEWELLERS WEDDING", 150000, 6], ["Shopping", "BANQUET MARRIAGE HALL ADVANCE", 60000, 11]] },
+];
+
+// Historical closed leads for the A/B dashboard: [name, product, status, cohort, disposable, emi, eligible]
+const SEED_HIST: [string, LoanType, LeadStatus, Cohort, number, number, number][] = [
+  ["Aarav Mehta", "Personal Loan", "Converted", "Treated", 65000, 32500, 1000000],
+  ["Rohan Kapoor", "Home Loan", "Converted", "Treated", 140000, 70000, 6500000],
+  ["Karthik Nair", "Auto Loan", "Converted", "Treated", 180000, 90000, 2200000],
+  ["Divya Menon", "Personal Loan", "Converted", "Treated", 120000, 48000, 1500000],
+  ["Ishita Shah", "Home Loan", "Converted", "Treated", 220000, 110000, 9000000],
+  ["Aditya Kumar", "Home Loan", "Converted", "Treated", 78000, 31000, 3200000],
+  ["Sneha Reddy", "Auto Loan", "Rejected", "Treated", 60000, 24000, 900000],
+  ["Priya Sharma", "Mortgage Loan", "Converted", "Control", 72000, 36000, 3000000],
+  ["Ananya Desai", "Personal Loan", "Rejected", "Control", 84000, 33000, 1200000],
+  ["Meera Joshi", "Home Loan", "Rejected", "Control", 44000, 17000, 2100000],
+  ["Arjun Rao", "Mortgage Loan", "Rejected", "Control", 55000, 22000, 1800000],
+  ["Pooja Iyer", "Personal Loan", "Rejected", "Control", 60000, 24000, 1100000],
+  ["Nikhil Gupta", "Home Loan", "Rejected", "Control", 82000, 32000, 4000000],
+  ["Vikram Singh", "Auto Loan", "Rejected", "Control", 33000, 13200, 600000],
+];
+
 export function seedDatabase(): void {
-  state.customers = [
-    { id: 1, name: "Aarav Mehta", email: "aarav.mehta@example.com", mobile: "+919876543210", account_number: "IDBI100892931", gross_monthly_income: 95000, credit_score: 780 },
-    { id: 2, name: "Priya Sharma", email: "priya.sharma@example.com", mobile: "+919876543211", account_number: "IDBI100482932", gross_monthly_income: 150000, credit_score: 810 },
-    { id: 3, name: "Vikram Singh", email: "vikram.singh@example.com", mobile: "+919876543212", account_number: "IDBI100382933", gross_monthly_income: 55000, credit_score: 640 },
-  ];
+  state.customers = SEED_PROFILES.map((p, i) => ({
+    id: i + 1,
+    name: p.name,
+    email: p.email,
+    mobile: p.mobile,
+    account_number: p.acct,
+    gross_monthly_income: p.income,
+    credit_score: p.credit,
+  }));
   state.transactions = [];
   state.clicks = [];
   state.leads = [];
@@ -68,63 +179,33 @@ export function seedDatabase(): void {
   const push = (customer_id: number, amount: number, category: string, description: string, ts: Date) => {
     state.transactions.push({ id: state.transactions.length + 1, customer_id, amount, category, description, timestamp: ts.toISOString() });
   };
-
-  for (let i = 0; i < 3; i++) {
-    const m = new Date(now.getTime() - i * 30 * DAY);
-    const d = (day: number) => new Date(m.getFullYear(), m.getMonth(), day);
-    const sal = i === 0 ? 1.25 : 1.0; // +25% promotion in the current month (income surge → life event)
-
-    push(1, 95000 * sal, "Salary", "IDBI SALARY CREDIT / TECH CORP", d(1));
-    push(1, -25000, "Rent", "RENT TRANSFER / APARTMENT", d(3));
-    push(1, -10000, "SIP", "SIP DEBIT / HDFC MUTUAL FUND", d(5));
-    push(1, -3500, "Utility", "TATA POWER ELECTRICITY BILL", d(10));
-    push(1, -12000, "Shopping", "AMAZON INDIA INFORMATICS", d(15));
-
-    push(2, 150000 * sal, "Salary", "SALARY CREDIT / CONSULTING GROUP", d(1));
-    push(2, -35000, "Rent", "RENT DEBIT / SOCIETY BANK", d(3));
-    push(2, -15000, "EMI", "HDFC CAR LOAN AUTO EMI", d(5));
-    push(2, -20000, "SIP", "SIP DEBIT / NIPPON INDIA FUND", d(7));
-    push(2, -8000, "Utility", "ACT FIBERNET & GAS UTILITY", d(12));
-
-    push(3, 55000 * sal, "Salary", "SALARY CREDIT / RETAIL CORP", d(1));
-    push(3, -15000, "Transfer", "FAMILY TRANSFER", d(3));
-    push(3, -5000, "SIP", "SIP DEBIT / AXIS MUTUAL FUND", d(5));
-    push(3, -2200, "Utility", "PHONE & BROADBAND BILLS", d(10));
-  }
-
-  // trigger transactions: showroom/insurance (Aarav → Auto), furniture + rental
-  // deposit (Priya → Home), penalty (Vikram → Personal, stays high-risk)
-  push(1, -30000, "Shopping", "MARUTI SUZUKI SHOWROOM BOOKING", new Date(now.getTime() - 6 * DAY));
-  push(1, -18500, "Insurance", "ICICI LOMBARD MOTORS INSURANCE", new Date(now.getTime() - 9 * DAY));
-  push(2, -65000, "Shopping", "IKEA FURNITURE MUMBAI IN", new Date(now.getTime() - 12 * DAY));
-  push(2, -90000, "Rent", "NOBROKER RENTAL DEPOSIT & BROKERAGE", new Date(now.getTime() - 10 * DAY));
-  push(3, -1200, "Penalty", "IDBI CC BILL LATE FEE CHARGE", new Date(now.getTime() - 8 * DAY));
-  push(3, -18000, "Shopping", "FLIPKART INTERNET DEBIT", new Date(now.getTime() - 14 * DAY));
-
   const click = (customer_id: number, page_url: string, action: string, duration: number, daysAgo: number) => {
     state.clicks.push({ customer_id, page_url, action, duration_seconds: duration, timestamp: new Date(now.getTime() - daysAgo * DAY).toISOString() });
   };
-  // Aarav: strong auto journey + secondary home look
-  click(1, "/auto-loan", "VIEW", 45, 3);
-  click(1, "/auto-loan/emi-calculator", "CALCULATE_EMI", 120, 3);
-  click(1, "/auto-loan", "CLICK_APPLY", 5, 2);
-  click(1, "/home-loan", "VIEW", 40, 4);
-  click(1, "/home-loan/calculator", "CALCULATE_EMI", 70, 4);
-  // Priya: strong home journey (to apply) + secondary personal look
-  click(2, "/home-loan", "VIEW", 80, 5);
-  click(2, "/home-loan/calculator", "CALCULATE_EMI", 150, 4);
-  click(2, "/home-loan", "CLICK_APPLY", 8, 2);
-  click(2, "/personal-loan", "VIEW", 35, 6);
-  click(2, "/personal-loan/emi-calculator", "CALCULATE_EMI", 60, 6);
-  // Vikram: personal-loan interest (held back by the risk gate)
-  click(3, "/personal-loan", "VIEW", 30, 6);
-  click(3, "/personal-loan/emi-calculator", "CALCULATE_EMI", 55, 2);
 
+  SEED_PROFILES.forEach((p, idx) => {
+    const id = idx + 1;
+    for (let i = 0; i < 3; i++) {
+      const m = new Date(now.getTime() - i * 30 * DAY);
+      const d = (day: number) => new Date(m.getFullYear(), m.getMonth(), day);
+      const sal = i === 0 && p.promo ? 1.25 : 1.0;
+      push(id, p.income * sal, "Salary", "IDBI SALARY CREDIT", d(1));
+      p.commits.forEach(([cat, desc, amt], j) => push(id, -amt, cat, desc, d(5 + j * 2)));
+    }
+    p.triggers.forEach(([cat, desc, amt, daysAgo]) => push(id, -amt, cat, desc, new Date(now.getTime() - daysAgo * DAY)));
+    let clicks = journeyClicks(p.product, p.journey);
+    if (p.second) {
+      const [sp, sk] = p.second.split(":") as [LoanType, Journey];
+      clicks = clicks.concat(journeyClicks(sp, sk).map(([u, a, dur, ago]) => [u, a, dur, ago + 1] as [string, string, number, number]));
+    }
+    clicks.forEach(([u, a, dur, ago]) => click(id, u, a, dur, ago));
+  });
+
+  // active (open) leads — computed & risk-gated by refreshCustomerLeads
   state.customers.forEach((c) => refreshCustomerLeads(c.id));
 
-  // Historical completed leads for the A/B cohort dashboard. Their propensity is
-  // computed from the SAME engine (composite_lead_score) so the leads board and
-  // the Twin Portfolio always show identical Loan Readiness for a customer+product.
+  // historical closed leads with computed scores, so board == twin everywhere
+  const byName = (name: string) => state.customers.find((c) => c.name === name)!;
   const compositeFor = (customer_id: number, loan_type: LoanType): { score: number; level: "Hot" | "Warm" | "Cold" } => {
     const cust = state.customers.find((c) => c.id === customer_id)!;
     const txs = state.transactions.filter((t) => t.customer_id === customer_id);
@@ -132,20 +213,23 @@ export function seedDatabase(): void {
     const t = evaluatePropensityAndIntent(clicks, txs, cust.credit_score, [])[loan_type];
     return { score: Math.round(t.composite_lead_score * 100) / 100, level: t.intent_level };
   };
-  const hist = (id: number, customer_id: number, loan_type: LoanType, disp: number, emi: number, amount: number, status: LeadStatus, cohort: Cohort) => {
-    const customer = state.customers.find((c) => c.id === customer_id)!;
-    const { score, level } = compositeFor(customer_id, loan_type);
-    state.leads.push({ id, customer_id, customer, loan_type, propensity_score: score, intent_level: level, calculated_disposable_income: disp, max_eligible_emi: emi, eligible_loan_amount: amount, status, cohort });
-  };
-  hist(200, 1, "Personal Loan", 65000, 32500, 1000000, "Converted", "Treated");
-  hist(201, 2, "Auto Loan", 72000, 36000, 1500000, "Converted", "Treated");
-  hist(202, 1, "Mortgage Loan", 65000, 32500, 2500000, "Converted", "Treated");
-  hist(203, 3, "Auto Loan", 33000, 13200, 600000, "Rejected", "Treated");
-  hist(204, 2, "Mortgage Loan", 72000, 36000, 3000000, "Converted", "Control");
-  hist(205, 3, "Home Loan", 33000, 13200, 1200000, "Rejected", "Control");
-  hist(206, 1, "Home Loan", 65000, 32500, 3500000, "Rejected", "Control");
-  hist(207, 2, "Personal Loan", 72000, 36000, 1200000, "Rejected", "Control");
-  hist(208, 3, "Mortgage Loan", 33000, 13200, 1000000, "Rejected", "Control");
+  SEED_HIST.forEach(([name, loan_type, status, cohort, disp, emi, amount], i) => {
+    const customer = byName(name);
+    const { score, level } = compositeFor(customer.id, loan_type);
+    state.leads.push({
+      id: 200 + i,
+      customer_id: customer.id,
+      customer,
+      loan_type,
+      propensity_score: score,
+      intent_level: level,
+      calculated_disposable_income: disp,
+      max_eligible_emi: emi,
+      eligible_loan_amount: amount,
+      status,
+      cohort,
+    });
+  });
 }
 
 // ---------- Model 1: cash-flow income estimation ----------
@@ -413,7 +497,7 @@ function evaluatePropensityAndIntent(clicks: ClickEvent[], txs: Transaction[], c
     if (spendingStabilityScore >= 90) triggers.push(`Stable cash inflows: ${spendingStabilityScore.toFixed(0)}/100`);
 
     let label: "Hot" | "Warm" | "Cold" = "Cold";
-    if (propensityScoreScaled >= 0.7) label = "Hot";
+    if (propensityScoreScaled >= 0.55) label = "Hot"; // calibrated to the LRI's conservative range
     else if (propensityScoreScaled >= 0.35) label = "Warm";
 
     const eligibility = calculateLoanEligibility(disposable, p, creditScore);
