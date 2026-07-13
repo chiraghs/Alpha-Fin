@@ -28,20 +28,7 @@ jobs:
       run: |
         PYTHONPATH=backend pytest backend/tests/
 
-  deploy-github-pages:
-    needs: build-and-test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    
-    permissions:
-      contents: write
-      
-    steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
-
-    - name: Deploy static assets to GitHub Pages
-      uses: JamesIves/github-pages-deploy-action@v4
-      with:
-        folder: frontend
-        branch: gh-pages
+  # NOTE: the old deploy-github-pages job (which pushed the legacy frontend/
+  # prototype to gh-pages on every main push) has been removed. gh-pages now
+  # holds a hand-maintained landing page that links to the Render-hosted app;
+  # the app itself deploys via render.yaml (Deploy-to-Render button).
