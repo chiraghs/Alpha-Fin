@@ -459,19 +459,71 @@ Our core models ingest and engineer features across four distinct categories, dr
 
 ## 📸 Product Demonstration (UI Screenshots)
 
-Here is a visual walk-through of the Prospect Assist AI relationship manager console and its core interactive screens:
+Here is a visual walkthrough of the Prospect Assist AI application, demonstrating the portal launch, role-based workflows, relationship manager tooling, and branch manager command console.
 
-### 1. Unified Relationship Manager Hub Dashboard
-The command center displays the prioritized lead scoring board, the live customer behavior simulator triggers (left panel), and the dynamic conversion performance lift tracking metrics in real-time.
+### 🚀 1. Portal Launch & Landing Workspace
+The landing workspace introduces the Prospect Assist AI platform (developed for IDBI Innovate 2026 Hackathon - Track 02). It provides direct options to launch the live simulator or access project documentation.
+![Portal Launch](demo/images/launch.png)
 
-![Prospect AI](demo/images/Prospect%20AI.png)
+---
 
-### 2. Behavioral Financial Twin Radar Analyzer
-The customer portfolio sub-screen provides a deep underwriting inspection tool. Select any customer to view their six twin metrics dynamically simulated across various loan types with explainable AI reason narrative logging.
+### 🔑 2. Role-Based Login & Dual-Theme Interface
+The platform implements a **dual-theme interface** (Light & Dark modes) and role-based workspace routing based on user credentials:
+* **Relationship Manager Login**: Sign in as the RM (`rm.demo@idbibank.in`) to route to the interactive RM command board and customer portal simulator.
+* **Branch Manager Login**: Sign in as the manager (`manager.demo@idbibank.in`) to access team-wide KPIs, AI executive briefing alerts, and individual scorecards.
 
-![Behavioral Twin](demo/images/Behaviour%20Twin.png)
+| ☀️ Relationship Manager Login | 🌙 Branch Manager Login  |
+| :---: | :---: |
+| ![Relationship Manager Login](demo/images/login_white.png) | ![Branch Manager Login](demo/images/login_dark.png) |
 
-### 3. Hyper-Targeted Outreach Campaign Modal
-Clicking on outreach prompts a glassmorphic centered overlay dialog detailing campaign templates for different channels (WhatsApp, Email, RM Scripts) personalized to the specific customer's behavioral history.
+---
 
-![Outreach Campaign](demo/images/Outreach%20Campaign.png)
+### 👔 3. Relationship Manager Portal
+
+The Relationship Manager Portal organizes lead prioritization, dynamic customer profile charts, calculator engagement, and AI-personalized campaign outreach.
+
+#### 📋 A. Prioritized Leads & Campaign Outreach
+The main RM dashboard rolls up key performance metrics (AI conversion lift, qualified lead counts, hot leads) and lists qualified prospects ranked by their Loan Readiness Index (LRI). RMs can review CIBIL scores, disposable income estimates, and eligible limits, and instantly initiate personalized campaigns.
+
+![Prioritized Leads & Outreach](demo/images/Leads%20&%20outreach.png)
+
+#### 🧬 B. Behavioral Financial Twin Profile
+Rather than displaying a static credit score, this tab generates a dynamic **Behavioral Financial Twin** for each customer. It maps six core dimensions (Repayment Capacity, Intent Score, Financial Discipline, Spending Stability, Income Confidence, and Offer Acceptance Probability) on an interactive radar chart, accompanied by natural-language explainable AI narratives and underwriting logs.
+
+![Behavioral Twin Profile](demo/images/Customer%20twin%20profile.png)
+
+#### 🔍 C. Dynamic Search & Multi-Criteria Filtering
+The lead queue is highly searchable and filterable. RMs can filter by specific loan products (e.g., Personal Loan, Auto Loan, Home Loan, Mortgage Loan) or use the interactive Loan Readiness Index (LRI) slider threshold to isolate high-intent prospects dynamically.
+
+![Lead Filter Workspace](demo/images/filters.png)
+
+#### 🧮 D. In-App Interactive EMI Calculator
+RMs can witness customer actions in real-time. When a customer expands the EMI Calculator in their mobile simulator, adjusts the loan amount (e.g., ₹8,00,000 for an Auto Loan at 9.5% interest), and adjusts the tenure, the clickstream velocity triggers an immediate update. The customer's GBDT Intent Score instantly climbs to 65/100 and their LRI updates on the RM board.
+
+![Interactive EMI Calculator](demo/images/emi%20calculator.png)
+
+#### 💬 E. Generative AI WhatsApp Outreach Modal
+Clicking "Outreach" triggers a modal that creates personalized marketing pitches. The WhatsApp campaign generator automatically writes a tailored message highlighting pre-approved loan amounts, interest rates, and EMI details based on the customer's real-time interaction logs, allowing the RM to copy the text and log the outcome (Converted / Rejected).
+
+![WhatsApp Campaign Modal](demo/images/whatsapp%20msg.png)
+
+#### 📞 F. AI-Generated RM Teleprompter Call Script
+For phone outreach, the campaign modal provides a dedicated "RM Script" tab. This displays a smart call teleprompter that guides the RM through a professional greeting, outlines pre-qualified limit details, mentions their recent calculator exploration, and suggests objection handling strategies tailored to their profile.
+
+![AI Call Script Teleprompter](demo/images/teleprompter.png)
+
+---
+
+### 💼 4. Branch Manager Cockpit (Dual-Theme Monitoring Views)
+
+The Branch Manager cockpit does not show the customer simulator. Instead, it aggregates live data from the team's databases to monitor performance, project run-rates, and provide AI coaching.
+
+#### 📊 A. Team Performance Dashboard
+A comprehensive summary showing team target attainment (85% team disbursal vs target), conversions across RMs, team conversion rates, and the AI conversion lift (+24 pt lift vs control). The AI executive brief parses live analytics to highlight top-performing RMs and flag those needing attention, while the run-rate forecast projects final month-end numbers. An RM Leaderboard lets the manager click any RM (e.g., Arjun Kapoor) to review their target attainment, conversions, disbursal, weekly trend sparkline, and automated AI coaching advice.
+
+![Branch Manager Dashboard](demo/images/bm1.png)
+
+#### ☀️ B. Team Performance Dashboard 
+The Branch Manager dashboard view displays the active scorecard for Rhea Nair, highlighting that she is trailing at 50% target attainment and providing an AI coaching recommendation to migrate her control book to AI-personalized templates to close the 55 pt conversion gap.
+
+![Branch Manager Dashboard](demo/images/bm2.png)
