@@ -224,3 +224,38 @@ export const PhoneCall = (p: SVGProps<SVGSVGElement>) => (
     <path d="M4 3h4l2 5-2.5 1.5a12 12 0 0 0 7 7L16 14l5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 2 5a2 2 0 0 1 2-2Z" />
   </svg>
 );
+
+export const Target = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <circle cx="12" cy="12" r="9" />
+    <circle cx="12" cy="12" r="5" />
+    <circle cx="12" cy="12" r="1.5" />
+  </svg>
+);
+
+export const Trophy = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M8 21h8m-4-4v4m-5-17h10v4a5 5 0 0 1-10 0V4Z" />
+    <path d="M7 4H4v2a3 3 0 0 0 3 3m10-5h3v2a3 3 0 0 1-3 3" />
+  </svg>
+);
+
+export const ArrowUp = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M12 19V5m-7 7 7-7 7 7" />
+  </svg>
+);
+
+export const ArrowDown = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M12 5v14m7-7-7 7-7-7" />
+  </svg>
+);
+
+export const Wallet = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M3 7a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v2" />
+    <path d="M3 7v10a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-3M3 7v3h17" />
+    <circle cx="16" cy="13.5" r="1.2" />
+  </svg>
+);

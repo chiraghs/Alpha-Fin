@@ -118,6 +118,85 @@ export interface OutreachResponse {
 
 export type ConnectionMode = "live" | "standalone";
 
+// ---------- Branch Manager team analytics ----------
+
+export interface CohortStat {
+  total: number;
+  converted: number;
+  rate: number; // %
+}
+
+export type RMStatus = "ahead" | "on_track" | "behind";
+export type TrendDirection = "up" | "down" | "flat";
+
+export interface RMPerformance {
+  id: number;
+  name: string;
+  email: string;
+  region: string;
+  tenure_years: number;
+  initials: string;
+  is_live: boolean;
+  assigned: number;
+  new: number;
+  contacted: number;
+  converted: number;
+  rejected: number;
+  disbursed_amount: number;
+  conversion_rate: number; // %
+  target_conversions: number;
+  target_disbursal: number;
+  conv_attainment: number; // %
+  disbursal_attainment: number; // %
+  attainment: number; // %
+  avg_propensity: number; // %
+  treated: CohortStat;
+  control: CohortStat;
+  product_mix: Record<string, number>;
+  weekly_trend: number[];
+  status: RMStatus;
+  trend_direction: TrendDirection;
+  coaching: string;
+}
+
+export interface TeamConsolidated {
+  total_assigned: number;
+  total_new: number;
+  total_contacted: number;
+  total_converted: number;
+  total_rejected: number;
+  total_disbursed: number;
+  total_target_disbursal: number;
+  total_target_conversions: number;
+  conversion_rate: number;
+  disbursal_attainment: number;
+  conv_attainment: number;
+  active_rms: number;
+  treated: CohortStat;
+  control: CohortStat;
+  lift: number;
+  best_performer: string;
+  needs_attention: string;
+}
+
+export interface TeamForecast {
+  projected_conversions: number;
+  target_conversions: number;
+  projected_disbursal: number;
+  target_disbursal: number;
+  pace: RMStatus;
+  days_elapsed: number;
+  days_in_month: number;
+}
+
+export interface TeamPerformance {
+  rms: RMPerformance[];
+  consolidated: TeamConsolidated;
+  forecast: TeamForecast;
+  ai_summary: string;
+  generated_at: string;
+}
+
 export interface ActivityItem {
   id: number;
   at: string;

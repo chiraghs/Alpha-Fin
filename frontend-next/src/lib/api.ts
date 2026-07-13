@@ -13,6 +13,7 @@ import {
   OutreachChannel,
   OutreachResponse,
   PerformanceStats,
+  TeamPerformance,
 } from "./types";
 
 // Backend location. When NEXT_PUBLIC_API_BASE isn't pinned, derive it from
@@ -94,6 +95,8 @@ export const api = {
   getLeads: () => request<Lead[]>("/leads", undefined, () => engine.getLeads()),
 
   getPerformance: () => request<PerformanceStats>("/leads/performance", undefined, () => engine.getPerformance()),
+
+  getTeamPerformance: () => request<TeamPerformance>("/team/performance", undefined, () => engine.getTeamPerformance()),
 
   logClickstream: (event: { customer_id: number; page_url: string; action: string; duration_seconds?: number }) =>
     request<unknown>("/clickstream", { method: "POST", body: JSON.stringify(event) }, () => {
