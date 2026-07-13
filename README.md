@@ -178,7 +178,7 @@ graph TD
         User["Relationship Manager (RM)"] --> NGINX["NGINX Reverse Proxy"]
         NGINX --> Limits["Rate Limiter & Idempotency Filter"]
         Limits --> LB["Load Balancer"]
-        LB --> AppServer["Repository 3: FastAPI Application Server"]
+        LB --> AppServer["FastAPI Application Server"]
         
         %% Database lookup path (vertical downwards)
         RDS3[(AWS RDS App Database)] --> Redis["Redis Score Cache"]
