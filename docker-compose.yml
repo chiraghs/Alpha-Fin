@@ -1,0 +1,21 @@
+# Prospect Assist AI — full stack (FastAPI backend + Next.js frontend)
+# Run: docker compose up --build   (or ./start.sh --docker)
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend-next
+      # NEXT_PUBLIC_API_BASE stays unset so the browser derives the backend
+      # URL from the page hostname (localhost and LAN devices both work).
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped

@@ -1,0 +1,11 @@
+.git
+venv
+**/__pycache__
+*.db
+backend.log
+frontend.log
+frontend-next/node_modules
+frontend-next/.next
+frontend-next/out
+demo
+*.pptx

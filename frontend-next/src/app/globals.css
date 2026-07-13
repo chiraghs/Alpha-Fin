@@ -1,0 +1,299 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ============================================================
+   PROSPECT ASSIST AI — IDBI banking design system
+   Orange Passion #F58220 · Observatory Green #00836C
+   Chart palette validated (dataviz six checks):
+     light: #00836C, #F58220 (orange sub-3:1 → always direct-labeled)
+     dark:  #1DA98C, #DE6F10
+   ============================================================ */
+:root {
+  /* surfaces */
+  --page: #f2f6f4;
+  --surface-1: #ffffff;
+  --surface-2: #f2f6f4;
+  --surface-3: #e4ece9;
+  --glass: rgba(255, 255, 255, 0.72);
+
+  /* ink */
+  --ink-primary: #0a1f1a;
+  --ink-secondary: #46584f;
+  --ink-muted: #7d8d86;
+
+  /* brand */
+  --brand-green: #00836c;
+  --brand-green-strong: #00594a;
+  --brand-green-soft: #d8efe8;
+  --brand-orange: #f58220;
+  --brand-orange-strong: #c95f04;
+  --brand-orange-soft: #fdecd9;
+  --brand-gradient: linear-gradient(135deg, #00594a 0%, #00836c 55%, #00a184 100%);
+  --hero-gradient: linear-gradient(120deg, #013d33 0%, #00594a 35%, #00836c 75%, #019a7e 100%);
+
+  /* chart series (validated) */
+  --series-green: #00836c;
+  --series-orange: #f58220;
+  --series-deemph: #b6c3be;
+
+  /* status (fixed scale — icon + label always accompany) */
+  --status-good: #0ca30c;
+  --status-good-text: #067806;
+  --status-warning: #b97d00;
+  --status-serious: #c05621;
+  --status-critical: #d03b3b;
+
+  /* chrome */
+  --hairline: rgba(10, 31, 26, 0.09);
+  --grid: #dfe7e3;
+  --shadow-card: 0 1px 2px rgba(10, 31, 26, 0.04), 0 12px 32px -16px rgba(10, 31, 26, 0.14);
+  --shadow-pop: 0 24px 60px -24px rgba(1, 61, 51, 0.35);
+  --ring: rgba(0, 131, 108, 0.35);
+}
+
+.dark {
+  --page: #06100d;
+  --surface-1: #0d1a16;
+  --surface-2: #12211c;
+  --surface-3: #1a2c26;
+  --glass: rgba(13, 26, 22, 0.72);
+
+  --ink-primary: #eef5f2;
+  --ink-secondary: #a8bab2;
+  --ink-muted: #6f817a;
+
+  --brand-green: #1da98c;
+  --brand-green-strong: #3ecdae;
+  --brand-green-soft: #10322a;
+  --brand-orange: #f58220;
+  --brand-orange-strong: #ffa14e;
+  --brand-orange-soft: #33210f;
+  --brand-gradient: linear-gradient(135deg, #0b5a4a 0%, #12866e 55%, #1da98c 100%);
+  --hero-gradient: linear-gradient(120deg, #04241d 0%, #0a4237 40%, #0f6351 75%, #14806a 100%);
+
+  --series-green: #1da98c;
+  --series-orange: #de6f10;
+  --series-deemph: #45544e;
+
+  --status-good: #0ca30c;
+  --status-good-text: #35c035;
+  --status-warning: #fab219;
+  --status-serious: #ec835a;
+  --status-critical: #e05252;
+
+  --hairline: rgba(255, 255, 255, 0.09);
+  --grid: #22332d;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.5), 0 14px 36px -18px rgba(0, 0, 0, 0.65);
+  --shadow-pop: 0 24px 70px -24px rgba(0, 0, 0, 0.8);
+  --ring: rgba(29, 169, 140, 0.4);
+}
+
+@theme inline {
+  --color-page: var(--page);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-ink: var(--ink-primary);
+  --color-ink-secondary: var(--ink-secondary);
+  --color-ink-muted: var(--ink-muted);
+  --color-brand: var(--brand-green);
+  --color-brand-strong: var(--brand-green-strong);
+  --color-brand-soft: var(--brand-green-soft);
+  --color-accent: var(--brand-orange);
+  --color-accent-strong: var(--brand-orange-strong);
+  --color-accent-soft: var(--brand-orange-soft);
+  --color-good: var(--status-good);
+  --color-good-text: var(--status-good-text);
+  --color-warning: var(--status-warning);
+  --color-serious: var(--status-serious);
+  --color-critical: var(--status-critical);
+  --color-hairline: var(--hairline);
+  --font-sans: var(--font-jakarta), system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--page);
+  color: var(--ink-primary);
+  font-family: var(--font-jakarta), system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* soft brand mesh behind the whole app */
+.app-mesh {
+  background:
+    radial-gradient(60rem 32rem at 110% -10%, color-mix(in srgb, var(--brand-green) 9%, transparent), transparent 60%),
+    radial-gradient(50rem 30rem at -15% 108%, color-mix(in srgb, var(--brand-orange) 7%, transparent), transparent 55%),
+    var(--page);
+}
+
+/* ---------- primitives ---------- */
+.card {
+  background: var(--surface-1);
+  border: 1px solid var(--hairline);
+  border-radius: 20px;
+  box-shadow: var(--shadow-card);
+}
+
+.glass {
+  background: var(--glass);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--hairline);
+}
+
+.lift {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-pop);
+}
+
+/* concentric emblem arcs — decorative brand pattern */
+.brand-arcs {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.brand-arcs::before,
+.brand-arcs::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+}
+.brand-arcs::before {
+  width: 42rem;
+  height: 42rem;
+  right: -14rem;
+  top: -18rem;
+}
+.brand-arcs::after {
+  width: 26rem;
+  height: 26rem;
+  right: -6rem;
+  top: -9rem;
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+/* ---------- scrollbars ----------
+   Inner scrollers (phone app, stream popup, tables) and the whole mobile
+   view scroll without any visible bar; the main page gets a hairline
+   brand-green bar on desktop. */
+* {
+  scrollbar-width: none;
+}
+*::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+@media (min-width: 1024px) {
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--brand-green) transparent;
+  }
+  html::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  html::-webkit-scrollbar-thumb {
+    background: var(--brand-green);
+    border-radius: 999px;
+  }
+  html::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+/* ---------- motion ---------- */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+.pulse-dot { animation: pulse-dot 1.6s ease-in-out infinite; }
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.rise-in { animation: rise-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.rise-in-1 { animation: rise-in 0.4s 0.05s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.rise-in-2 { animation: rise-in 0.4s 0.12s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.rise-in-3 { animation: rise-in 0.4s 0.19s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+@keyframes flash-row {
+  0% { background-color: color-mix(in srgb, var(--brand-green) 18%, transparent); }
+  100% { background-color: transparent; }
+}
+.flash-row { animation: flash-row 1.4s ease-out both; }
+
+@keyframes gradient-pan {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.gradient-pan {
+  background-size: 220% 220%;
+  animation: gradient-pan 14s ease infinite;
+}
+
+@keyframes ring-fill {
+  from { stroke-dashoffset: var(--ring-circ, 289); }
+}
+.ring-anim { animation: ring-fill 1s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-dot, .rise-in, .rise-in-1, .rise-in-2, .rise-in-3,
+  .flash-row, .gradient-pan, .ring-anim { animation: none; }
+  .lift, .lift:hover { transition: none; transform: none; }
+}
+
+/* ---------- brand range slider ---------- */
+input[type="range"].brand-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--brand-green) 0%,
+    var(--brand-green) var(--fill, 50%),
+    var(--surface-3) var(--fill, 50%),
+    var(--surface-3) 100%
+  );
+  outline: none;
+}
+input[type="range"].brand-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--brand-orange);
+  border: 3px solid var(--surface-1);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+input[type="range"].brand-range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--brand-orange);
+  border: 3px solid var(--surface-1);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+/* WhatsApp-style chat surface for outreach previews */
+.chat-surface {
+  background:
+    radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--brand-green) 6%, transparent) 0 8px, transparent 8px),
+    var(--surface-2);
+}

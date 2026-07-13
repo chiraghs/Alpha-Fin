@@ -19,6 +19,7 @@ from .schemas import (
 from .services.credit import calculate_disposable_income, calculate_loan_eligibility
 from .services.scoring import evaluate_propensity_and_intent
 from .services.ai_outreach import generate_outreach_copy
+from .services.analytics import compute_team_performance
 from ..seed import seed_database
 
 app = FastAPI(
@@ -316,6 +317,16 @@ def get_leads_performance(db: Session = Depends(get_db)):
             "rate": round((control_conv / control_total * 100), 1) if control_total > 0 else 0.0
         }
     }
+
+# --- Branch Manager Team Analytics Endpoint ---
+@app.get("/api/team/performance")
+def get_team_performance(db: Session = Depends(get_db)):
+    """
+    Consolidated + per-RM performance analytics for the Branch Manager cockpit.
+    The demo RM's book is computed live from the current leads, so RM Hub actions
+    reflect upstream in real time; the rest of the team is a stable roster.
+    """
+    return compute_team_performance(db)
 
 # --- Simulator Control Endpoints ---
 @app.post("/api/reset")
