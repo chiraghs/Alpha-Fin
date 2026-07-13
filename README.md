@@ -33,6 +33,21 @@ To demonstrate the power of this system in a live hackathon pitch, Alpha-Fin is 
 
 ---
 
+## 👔 Branch Manager Cockpit
+
+A dedicated **role-based cockpit** for the Branch Manager, who oversees the whole relationship-manager (RM) team instead of working individual leads. Sign in as the manager persona (`manager.demo@idbibank.in`) and the app routes to a monitoring workspace with **no customer simulator** — just team intelligence. The demo RM's book is computed **live from the leads database**, so anything an RM does in their hub flows straight up into the manager's view in real time.
+
+* **Consolidated Team KPIs**: A single command band rolls up disbursal-vs-target attainment, total conversions, team conversion rate, AI-driven conversion lift, and total disbursed across all RMs.
+* **AI Executive Briefing**: A natural-language performance summary generated from the live analytics — flags the top performer and the RM needing attention, quantifies the Treated-vs-Control cohort lift, and states the month-end pace.
+* **AI Month-End Forecast**: A run-rate projection of conversions and disbursal versus target, with an *Ahead / On-pace / Trailing* verdict based on days elapsed in the cycle.
+* **RM Performance Leaderboard**: Every RM ranked by target attainment, with weekly-momentum sparklines, disbursed totals and status chips — select any RM to open their full scorecard.
+* **Individual RM Scorecard**: Full drill-down per RM — conversion & disbursal attainment bars, pipeline funnel (New → Contacted → Converted → Rejected), weekly trend, AI-vs-generic cohort split, product mix, and a **rule-based AI coaching** recommendation derived from their numbers.
+* **Org-Wide A/B Lift**: The Treated (AI-personalized) vs Control (generic) conversion lift tracked across the entire team, proving the model scales beyond a single book.
+
+> Powered by `backend/app/services/analytics.py` (consolidation, forecasting, coaching) and mirrored in the in-browser Standalone Engine, so the manager cockpit works with **or without** a backend.
+
+---
+
 ## 🏗️ System Architecture
 
 To support high-scale deployments, Prospect Assist AI is designed for cloud-native orchestration on **Amazon Web Services (AWS)** using **Applied Cloud Computing (ACC) tooling**. The pipeline routes raw banking inputs (left) into a central Data Lake, processes features, evaluates prospects across our core ML models (center), and persists leads to RDS PostgreSQL for the RM Dashboard (right). 

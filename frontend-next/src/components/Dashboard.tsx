@@ -11,6 +11,7 @@ import {
   Customer,
   Lead,
   LeadStatus,
+  LoanType,
   PerformanceStats,
 } from "@/lib/types";
 import { ActivityFeed } from "./ActivityFeed";
@@ -35,8 +36,12 @@ export function Dashboard() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [perf, setPerf] = useState<PerformanceStats | null>(null);
-  const [threshold, setThreshold] = useState(0.7);
+  // Start wide open — the RM sees the whole risk-gated book and tightens
+  // the LRI floor (or uses the filters) as the portfolio grows.
+  const [threshold, setThreshold] = useState(0.35);
   const [tab, setTab] = useState<RMTab>("leads");
+  const [twinCustomerId, setTwinCustomerId] = useState<number | null>(null);
+  const [twinProduct, setTwinProduct] = useState<LoanType>("Auto Loan");
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>("sim");
   const [streamOpen, setStreamOpen] = useState(false);
   const [streamSeen, setStreamSeen] = useState(0);
@@ -195,6 +200,15 @@ export function Dashboard() {
     [logActivity, showToast, refreshLeads],
   );
 
+  // Clicking a lead jumps to the Twin Portfolio focused on that customer AND
+  // the lead's product, so the readiness there matches the lead's LRI.
+  const handleInspectTwin = useCallback((customerId: number, loanType: LoanType) => {
+    setTwinCustomerId(customerId);
+    setTwinProduct(loanType);
+    setTab("portfolio");
+    setMobilePanel("rm");
+  }, []);
+
   const handleReset = useCallback(async () => {
     setResetting(true);
     try {
@@ -222,82 +236,75 @@ export function Dashboard() {
   if (!session) {
     // brief splash while the auth check runs (or redirect is in flight)
     return (
-      <div className="app-mesh flex min-h-screen items-center justify-center">
+      <div className="app-mesh flex h-dvh items-center justify-center">
         <span className="h-8 w-8 animate-spin rounded-full border-[3px] border-brand border-t-transparent" aria-label="Loading" />
       </div>
     );
   }
 
   return (
-    <div className="app-mesh min-h-screen">
+    <div className="app-mesh flex h-dvh flex-col overflow-hidden">
       <Header mode={mode} onReset={handleReset} resetting={resetting} session={session} onLogout={handleLogout} />
 
-      <main className="mx-auto grid max-w-[1700px] gap-5 px-4 pb-24 pt-5 sm:px-6 lg:grid-cols-[minmax(340px,400px)_1fr] lg:pb-5">
-        {/* LEFT: customer portal simulator — sticky and viewport-fitted on desktop;
-            the phone flexes and its app content scrolls inside */}
+      {/* viewport-locked stage: the page never scrolls — each region scrolls internally */}
+      <main className="mx-auto grid min-h-0 w-full max-w-[1700px] flex-1 gap-3 px-3 pb-16 pt-2.5 sm:px-5 lg:grid-cols-[minmax(330px,385px)_1fr] lg:pb-3">
+        {/* LEFT: customer portal simulator — the phone flexes and its app content scrolls inside */}
         <div
-          className={`${mobilePanel === "sim" ? "flex" : "hidden"} rise-in flex-col gap-4 lg:sticky lg:top-[76px] lg:flex lg:h-[calc(100dvh-96px)] lg:self-start lg:overflow-hidden`}
+          className={`${mobilePanel === "sim" ? "flex" : "hidden"} rise-in min-h-0 flex-col gap-2.5 overflow-hidden lg:flex`}
         >
-          <SectionTitle
-            Icon={Phone}
-            title="Customer Portal Simulator"
-            sub="Act on behalf of a customer and fire real-time behavioral events"
-          />
-          <PhoneSimulator customers={customers} selected={selected} onSelect={setSelectedId} actions={actions} />
-
-          {/* live pipeline stream — compact trigger, feed opens as a popup */}
-          <button
-            onClick={() => {
-              setStreamOpen(true);
-              setStreamSeen(activity.length);
-            }}
-            className="card lift flex shrink-0 items-center gap-2.5 px-4 py-2.5 text-left"
-          >
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent-strong">
-              <Bolt width={13} height={13} />
-            </span>
-            <span className="flex-1 text-xs font-extrabold text-ink">Live pipeline stream</span>
-            {activity.length > streamSeen && (
-              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[10px] font-extrabold text-white">
-                {activity.length - streamSeen}
+          <div className="flex shrink-0 items-center justify-between gap-2">
+            <SectionTitle Icon={Phone} title="Customer Portal Simulator" />
+            {/* live pipeline stream — compact trigger, feed opens as a popup */}
+            <button
+              onClick={() => {
+                setStreamOpen(true);
+                setStreamSeen(activity.length);
+              }}
+              className="card lift flex shrink-0 items-center gap-2 px-3 py-1.5 text-left"
+            >
+              <span className="flex h-5.5 w-5.5 shrink-0 items-center justify-center rounded-md bg-accent-soft text-accent-strong">
+                <Bolt width={11} height={11} />
               </span>
-            )}
-            <span className="pulse-dot h-2 w-2 rounded-full bg-brand" />
-          </button>
+              <span className="text-[11px] font-extrabold text-ink">Stream</span>
+              {activity.length > streamSeen && (
+                <span className="flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-accent px-1 text-[9.5px] font-extrabold text-white">
+                  {activity.length - streamSeen}
+                </span>
+              )}
+              <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-brand" />
+            </button>
+          </div>
+          <PhoneSimulator customers={customers} selected={selected} onSelect={setSelectedId} actions={actions} />
         </div>
 
         {/* RIGHT: RM command center (mobile: shown on the "rm" panel) */}
-        <div className={`${mobilePanel === "rm" ? "flex" : "hidden"} min-w-0 flex-col gap-4 lg:flex`}>
-          <SectionTitle
-            Icon={Chart}
-            title="Relationship Manager Hub"
-            sub="Real-time underwriting feed, propensity tracking and AI campaign triggers"
-          />
-
-          {/* hero: conversion lift + pipeline counters */}
-          <div className="rise-in-1">
+        <div className={`${mobilePanel === "rm" ? "flex" : "hidden"} min-h-0 min-w-0 flex-col gap-2.5 overflow-hidden lg:flex`}>
+          {/* hero strip: conversion lift + pipeline counters + tabs share one compact band */}
+          <div className="rise-in-1 shrink-0">
             <InsightHero perf={perf} qualified={qualified.length} hot={hotCount} threshold={threshold} />
           </div>
 
-          {/* tabs */}
-          <div className="rise-in-2 flex gap-1 rounded-2xl bg-surface-3 p-1">
+          <div className="rise-in-2 flex shrink-0 gap-1 rounded-xl bg-surface-3 p-1">
             <TabButton active={tab === "leads"} onClick={() => setTab("leads")} Icon={List} label="Prioritized Leads & Outreach" />
             <TabButton active={tab === "portfolio"} onClick={() => setTab("portfolio")} Icon={Users} label="Customer Twin Portfolio" />
           </div>
 
           {tab === "leads" ? (
-            <div className="rise-in-3 flex flex-col gap-4">
+            <div className="rise-in-3 flex min-h-0 flex-1 flex-col gap-2.5 overflow-hidden">
               <CampaignLift perf={perf} />
               <LeadsBoard
                 leads={leads}
                 threshold={threshold}
                 onThreshold={setThreshold}
                 onOutreach={setOutreachLead}
+                onInspect={handleInspectTwin}
                 flashIds={flashIds}
               />
             </div>
           ) : (
-            <TwinPortfolio customers={customers} />
+            <div className="min-h-0 flex-1 overflow-hidden">
+              <TwinPortfolio customers={customers} customerId={twinCustomerId} product={twinProduct} onProduct={setTwinProduct} />
+            </div>
           )}
         </div>
       </main>
@@ -344,13 +351,13 @@ export function Dashboard() {
   );
 }
 
-function SectionTitle({ Icon, title, sub }: { Icon: typeof Phone; title: string; sub: string }) {
+function SectionTitle({ Icon, title, sub }: { Icon: typeof Phone; title: string; sub?: string }) {
   return (
     <div>
-      <h2 className="flex items-center gap-2 text-base font-extrabold text-ink">
-        <Icon width={16} height={16} className="text-brand" /> {title}
+      <h2 className="flex items-center gap-2 text-sm font-extrabold text-ink">
+        <Icon width={15} height={15} className="text-brand" /> {title}
       </h2>
-      <p className="mt-0.5 text-xs text-ink-muted">{sub}</p>
+      {sub && <p className="mt-0.5 text-xs text-ink-muted">{sub}</p>}
     </div>
   );
 }

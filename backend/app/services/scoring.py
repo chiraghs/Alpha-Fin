@@ -530,8 +530,10 @@ def evaluate_propensity_and_intent(
         if spending_stability_score >= 90.0:
             triggers.append(f"Stable cash inflows: {spending_stability_score}/100")
             
-        # Lead score mapping to target tiers
-        if propensity_score_scaled >= 0.70:
+        # Lead score mapping to target tiers. The LRI is a conservative
+        # multiplicative index, so its realistic top-end sits near ~0.6; the Hot
+        # cut-off is calibrated to that distribution rather than a raw 0.7.
+        if propensity_score_scaled >= 0.55:
             intent_label = "Hot"
         elif propensity_score_scaled >= 0.35:
             intent_label = "Warm"
