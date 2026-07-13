@@ -18,11 +18,21 @@ const PRODUCT_EMOJI: Record<LoanType, string> = {
   "Mortgage Loan": "🏢",
 };
 
-// The customer is chosen by clicking a lead in the Prioritized Leads list, so
-// this page is a pure controlled detail view (no customer picker of its own).
-export function TwinPortfolio({ customers, customerId }: { customers: Customer[]; customerId: number | null }) {
+// The customer AND product are chosen by clicking a lead in the Prioritized
+// Leads list, so this page is a pure controlled detail view. The RM can still
+// switch products with the tabs (which lifts the change back to the parent).
+export function TwinPortfolio({
+  customers,
+  customerId,
+  product,
+  onProduct,
+}: {
+  customers: Customer[];
+  customerId: number | null;
+  product: LoanType;
+  onProduct: (p: LoanType) => void;
+}) {
   const [profile, setProfile] = useState<CustomerTwinProfile | null>(null);
-  const [product, setProduct] = useState<LoanType>("Auto Loan");
   const [loading, setLoading] = useState(false);
   const showToast = useToast();
 
@@ -94,7 +104,7 @@ export function TwinPortfolio({ customers, customerId }: { customers: Customer[]
             {LOAN_TYPES.map((p) => (
               <button
                 key={p}
-                onClick={() => setProduct(p)}
+                onClick={() => onProduct(p)}
                 className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${
                   product === p
                     ? "border-brand bg-brand-soft text-brand-strong"

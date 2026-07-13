@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Lead, LeadStatus, LOAN_TYPES } from "@/lib/types";
+import { Lead, LeadStatus, LoanType, LOAN_TYPES } from "@/lib/types";
 import { inr, inrCompact } from "@/lib/format";
 import { Bolt, Chevron, Flame, Search, Sparkles, X } from "./Icons";
 import { Avatar } from "./Avatar";
@@ -35,7 +35,7 @@ export function LeadsBoard({
   threshold: number; // 0-1
   onThreshold: (v: number) => void;
   onOutreach: (lead: Lead) => void;
-  onInspect: (customerId: number) => void; // open the customer's Behavioral Twin
+  onInspect: (customerId: number, loanType: LoanType) => void; // open the customer's twin on this product
   flashIds: Set<number>;
 }) {
   const [query, setQuery] = useState("");
@@ -142,7 +142,7 @@ export function LeadsBoard({
             >
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => onInspect(lead.customer_id)}
+                  onClick={() => onInspect(lead.customer_id, lead.loan_type)}
                   className="group flex min-w-0 flex-1 items-center gap-3 text-left"
                   title={`Inspect ${lead.customer.name}'s Behavioral Twin`}
                 >
@@ -225,7 +225,7 @@ export function LeadsBoard({
                 >
                   <td className="px-3.5 py-2">
                     <button
-                      onClick={() => onInspect(lead.customer_id)}
+                      onClick={() => onInspect(lead.customer_id, lead.loan_type)}
                       className="group flex items-center gap-2.5 text-left"
                       title={`Inspect ${lead.customer.name}'s Behavioral Twin`}
                     >

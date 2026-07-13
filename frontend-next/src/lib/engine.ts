@@ -72,57 +72,80 @@ export function seedDatabase(): void {
   for (let i = 0; i < 3; i++) {
     const m = new Date(now.getTime() - i * 30 * DAY);
     const d = (day: number) => new Date(m.getFullYear(), m.getMonth(), day);
+    const sal = i === 0 ? 1.25 : 1.0; // +25% promotion in the current month (income surge → life event)
 
-    push(1, 95000, "Salary", "IDBI SALARY CREDIT / TECH CORP", d(1));
+    push(1, 95000 * sal, "Salary", "IDBI SALARY CREDIT / TECH CORP", d(1));
     push(1, -25000, "Rent", "RENT TRANSFER / APARTMENT", d(3));
     push(1, -10000, "SIP", "SIP DEBIT / HDFC MUTUAL FUND", d(5));
     push(1, -3500, "Utility", "TATA POWER ELECTRICITY BILL", d(10));
     push(1, -12000, "Shopping", "AMAZON INDIA INFORMATICS", d(15));
 
-    push(2, 150000, "Salary", "SALARY CREDIT / CONSULTING GROUP", d(1));
+    push(2, 150000 * sal, "Salary", "SALARY CREDIT / CONSULTING GROUP", d(1));
     push(2, -35000, "Rent", "RENT DEBIT / SOCIETY BANK", d(3));
     push(2, -15000, "EMI", "HDFC CAR LOAN AUTO EMI", d(5));
     push(2, -20000, "SIP", "SIP DEBIT / NIPPON INDIA FUND", d(7));
     push(2, -8000, "Utility", "ACT FIBERNET & GAS UTILITY", d(12));
 
-    push(3, 55000, "Salary", "SALARY CREDIT / RETAIL CORP", d(1));
+    push(3, 55000 * sal, "Salary", "SALARY CREDIT / RETAIL CORP", d(1));
     push(3, -15000, "Transfer", "FAMILY TRANSFER", d(3));
     push(3, -5000, "SIP", "SIP DEBIT / AXIS MUTUAL FUND", d(5));
     push(3, -2200, "Utility", "PHONE & BROADBAND BILLS", d(10));
   }
 
+  // trigger transactions: showroom/insurance (Aarav → Auto), furniture + rental
+  // deposit (Priya → Home), penalty (Vikram → Personal, stays high-risk)
+  push(1, -30000, "Shopping", "MARUTI SUZUKI SHOWROOM BOOKING", new Date(now.getTime() - 6 * DAY));
+  push(1, -18500, "Insurance", "ICICI LOMBARD MOTORS INSURANCE", new Date(now.getTime() - 9 * DAY));
   push(2, -65000, "Shopping", "IKEA FURNITURE MUMBAI IN", new Date(now.getTime() - 12 * DAY));
+  push(2, -90000, "Rent", "NOBROKER RENTAL DEPOSIT & BROKERAGE", new Date(now.getTime() - 10 * DAY));
   push(3, -1200, "Penalty", "IDBI CC BILL LATE FEE CHARGE", new Date(now.getTime() - 8 * DAY));
   push(3, -18000, "Shopping", "FLIPKART INTERNET DEBIT", new Date(now.getTime() - 14 * DAY));
 
   const click = (customer_id: number, page_url: string, action: string, duration: number, daysAgo: number) => {
     state.clicks.push({ customer_id, page_url, action, duration_seconds: duration, timestamp: new Date(now.getTime() - daysAgo * DAY).toISOString() });
   };
+  // Aarav: strong auto journey + secondary home look
   click(1, "/auto-loan", "VIEW", 45, 3);
   click(1, "/auto-loan/emi-calculator", "CALCULATE_EMI", 120, 3);
   click(1, "/auto-loan", "CLICK_APPLY", 5, 2);
+  click(1, "/home-loan", "VIEW", 40, 4);
+  click(1, "/home-loan/calculator", "CALCULATE_EMI", 70, 4);
+  // Priya: strong home journey (to apply) + secondary personal look
   click(2, "/home-loan", "VIEW", 80, 5);
-  click(2, "/home-loan/calculator", "CALCULATE_EMI", 150, 5);
-  click(2, "/home-loan", "VIEW", 90, 2);
+  click(2, "/home-loan/calculator", "CALCULATE_EMI", 150, 4);
+  click(2, "/home-loan", "CLICK_APPLY", 8, 2);
+  click(2, "/personal-loan", "VIEW", 35, 6);
+  click(2, "/personal-loan/emi-calculator", "CALCULATE_EMI", 60, 6);
+  // Vikram: personal-loan interest (held back by the risk gate)
   click(3, "/personal-loan", "VIEW", 30, 6);
-  click(3, "/personal-loan", "VIEW", 50, 2);
+  click(3, "/personal-loan/emi-calculator", "CALCULATE_EMI", 55, 2);
 
   state.customers.forEach((c) => refreshCustomerLeads(c.id));
 
-  // Historical completed leads so the campaign-lift dashboard has cohorts on load.
-  const hist = (id: number, customer_id: number, loan_type: LoanType, propensity: number, level: "Hot" | "Warm", disp: number, emi: number, amount: number, status: LeadStatus, cohort: Cohort) => {
-    const customer = state.customers.find((c) => c.id === customer_id)!;
-    state.leads.push({ id, customer_id, customer, loan_type, propensity_score: propensity, intent_level: level, calculated_disposable_income: disp, max_eligible_emi: emi, eligible_loan_amount: amount, status, cohort });
+  // Historical completed leads for the A/B cohort dashboard. Their propensity is
+  // computed from the SAME engine (composite_lead_score) so the leads board and
+  // the Twin Portfolio always show identical Loan Readiness for a customer+product.
+  const compositeFor = (customer_id: number, loan_type: LoanType): { score: number; level: "Hot" | "Warm" | "Cold" } => {
+    const cust = state.customers.find((c) => c.id === customer_id)!;
+    const txs = state.transactions.filter((t) => t.customer_id === customer_id);
+    const clicks = state.clicks.filter((c) => c.customer_id === customer_id);
+    const t = evaluatePropensityAndIntent(clicks, txs, cust.credit_score, [])[loan_type];
+    return { score: Math.round(t.composite_lead_score * 100) / 100, level: t.intent_level };
   };
-  hist(200, 1, "Personal Loan", 0.85, "Hot", 65000, 32500, 1000000, "Converted", "Treated");
-  hist(201, 2, "Auto Loan", 0.9, "Hot", 72000, 36000, 1500000, "Converted", "Treated");
-  hist(202, 1, "Mortgage Loan", 0.45, "Warm", 65000, 32500, 2500000, "Converted", "Treated");
-  hist(203, 3, "Auto Loan", 0.55, "Warm", 33000, 13200, 600000, "Rejected", "Treated");
-  hist(204, 2, "Mortgage Loan", 0.4, "Warm", 72000, 36000, 3000000, "Converted", "Control");
-  hist(205, 3, "Home Loan", 0.5, "Warm", 33000, 13200, 1200000, "Rejected", "Control");
-  hist(206, 1, "Home Loan", 0.45, "Warm", 65000, 32500, 3500000, "Rejected", "Control");
-  hist(207, 2, "Personal Loan", 0.6, "Warm", 72000, 36000, 1200000, "Rejected", "Control");
-  hist(208, 3, "Mortgage Loan", 0.35, "Warm", 33000, 13200, 1000000, "Rejected", "Control");
+  const hist = (id: number, customer_id: number, loan_type: LoanType, disp: number, emi: number, amount: number, status: LeadStatus, cohort: Cohort) => {
+    const customer = state.customers.find((c) => c.id === customer_id)!;
+    const { score, level } = compositeFor(customer_id, loan_type);
+    state.leads.push({ id, customer_id, customer, loan_type, propensity_score: score, intent_level: level, calculated_disposable_income: disp, max_eligible_emi: emi, eligible_loan_amount: amount, status, cohort });
+  };
+  hist(200, 1, "Personal Loan", 65000, 32500, 1000000, "Converted", "Treated");
+  hist(201, 2, "Auto Loan", 72000, 36000, 1500000, "Converted", "Treated");
+  hist(202, 1, "Mortgage Loan", 65000, 32500, 2500000, "Converted", "Treated");
+  hist(203, 3, "Auto Loan", 33000, 13200, 600000, "Rejected", "Treated");
+  hist(204, 2, "Mortgage Loan", 72000, 36000, 3000000, "Converted", "Control");
+  hist(205, 3, "Home Loan", 33000, 13200, 1200000, "Rejected", "Control");
+  hist(206, 1, "Home Loan", 65000, 32500, 3500000, "Rejected", "Control");
+  hist(207, 2, "Personal Loan", 72000, 36000, 1200000, "Rejected", "Control");
+  hist(208, 3, "Mortgage Loan", 33000, 13200, 1000000, "Rejected", "Control");
 }
 
 // ---------- Model 1: cash-flow income estimation ----------
