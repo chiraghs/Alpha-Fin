@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { DEMO_CREDENTIALS, getSession, login } from "@/lib/auth";
+import { DEMO_CREDENTIALS, MANAGER_CREDENTIALS, getSession, login } from "@/lib/auth";
 import { IdbiMark } from "@/components/Logo";
 import { Alert, Bolt, Brain, Chart, Check, Moon, Sparkles, Sun } from "@/components/Icons";
 import { useTheme } from "@/components/ThemeProvider";
@@ -36,9 +36,10 @@ export default function LoginPage() {
     }, 400);
   };
 
-  const fillDemo = () => {
-    setEmail(DEMO_CREDENTIALS.email);
-    setPassword(DEMO_CREDENTIALS.password);
+  const fillDemo = (persona: "rm" | "manager") => {
+    const creds = persona === "manager" ? MANAGER_CREDENTIALS : DEMO_CREDENTIALS;
+    setEmail(creds.email);
+    setPassword(creds.password);
     setError("");
   };
 
@@ -108,8 +109,10 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <h2 className="text-xl font-extrabold text-ink sm:text-2xl">Relationship Manager sign-in</h2>
-          <p className="mt-1 text-[13px] text-ink-muted">Access the lead intelligence hub and customer simulator.</p>
+          <h2 className="text-xl font-extrabold text-ink sm:text-2xl">Sign in to Prospect Assist AI</h2>
+          <p className="mt-1 text-[13px] text-ink-muted">
+            Relationship Managers reach the lead hub &amp; simulator; Branch Managers reach the team cockpit.
+          </p>
 
           <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
             <div>
@@ -167,24 +170,32 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* demo access */}
+          {/* demo access — two personas */}
           <div className="mt-6 rounded-2xl border border-dashed border-accent/50 bg-accent-soft p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <span className="block text-[10.5px] font-extrabold uppercase tracking-wide text-accent-strong">
-                  Judge / demo access
-                </span>
-                <span className="mt-1 block text-xs leading-relaxed text-ink-secondary">
-                  {DEMO_CREDENTIALS.email}
-                  <br />
-                  password: <code className="font-bold">{DEMO_CREDENTIALS.password}</code>
-                </span>
-              </div>
+            <span className="block text-[10.5px] font-extrabold uppercase tracking-wide text-accent-strong">
+              Judge / demo access · one-tap autofill
+            </span>
+            <span className="mt-1 block text-[11px] leading-relaxed text-ink-muted">
+              Shared password: <code className="font-bold text-ink-secondary">{DEMO_CREDENTIALS.password}</code>
+            </span>
+            <div className="mt-3 grid grid-cols-2 gap-2">
               <button
-                onClick={fillDemo}
-                className="flex shrink-0 items-center gap-1.5 rounded-full border border-accent/60 px-3 py-1.5 text-xs font-extrabold text-accent-strong transition hover:bg-accent hover:text-white"
+                onClick={() => fillDemo("rm")}
+                className="flex flex-col items-start gap-0.5 rounded-xl border border-accent/50 bg-surface-1 px-3 py-2 text-left transition hover:border-accent hover:bg-accent hover:text-white"
               >
-                <Check width={12} height={12} /> Autofill
+                <span className="flex items-center gap-1 text-[11px] font-extrabold">
+                  <Check width={11} height={11} /> Relationship Manager
+                </span>
+                <span className="text-[10px] opacity-80">{DEMO_CREDENTIALS.email}</span>
+              </button>
+              <button
+                onClick={() => fillDemo("manager")}
+                className="flex flex-col items-start gap-0.5 rounded-xl border border-brand/50 bg-surface-1 px-3 py-2 text-left transition hover:border-brand hover:bg-brand hover:text-white"
+              >
+                <span className="flex items-center gap-1 text-[11px] font-extrabold">
+                  <Chart width={11} height={11} /> Branch Manager
+                </span>
+                <span className="text-[10px] opacity-80">{MANAGER_CREDENTIALS.email}</span>
               </button>
             </div>
           </div>

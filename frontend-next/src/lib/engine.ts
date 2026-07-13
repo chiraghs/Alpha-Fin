@@ -23,7 +23,13 @@ import {
   OutreachChannel,
   PerformanceStats,
   ProductTwin,
+  RMPerformance,
+  RMStatus,
+  TeamConsolidated,
+  TeamForecast,
+  TeamPerformance,
   Transaction,
+  TrendDirection,
   TwinMap,
 } from "./types";
 
@@ -513,6 +519,237 @@ function generateOutreachCopy(lead: Lead, channel: OutreachChannel): string {
   return `[RM Script]\n"Hello ${name}, this is your Relationship Manager from IDBI Bank. I'm calling to share that we've set up a pre-approved ${loanType} limit of ${amt} on your account. ${hook ? "We saw some related transactions and wanted to reach out. " : ""}This comes with an easy EMI structure of ${emi} per month. Would you like me to process the digital disbursal for you?"`;
 }
 
+// ---------- Branch Manager team analytics (mirror of services/analytics.py) ----------
+
+interface RawRM {
+  id: number;
+  name: string;
+  email: string;
+  region: string;
+  tenure_years: number;
+  initials: string;
+  is_live?: boolean;
+  new: number;
+  contacted: number;
+  converted: number;
+  rejected: number;
+  disbursed_amount: number;
+  target_conversions: number;
+  target_disbursal: number;
+  avg_propensity: number;
+  treated: { total: number; converted: number };
+  control: { total: number; converted: number };
+  product_mix: Record<string, number>;
+  weekly_trend: number[];
+}
+
+const STATIC_ROSTER: RawRM[] = [
+  {
+    id: 2, name: "Arjun Kapoor", email: "arjun.kapoor@idbibank.in", region: "Delhi NCR", tenure_years: 5, initials: "AK",
+    new: 8, contacted: 21, converted: 11, rejected: 8, disbursed_amount: 13_200_000, target_conversions: 16, target_disbursal: 15_000_000, avg_propensity: 71,
+    treated: { total: 22, converted: 8 }, control: { total: 18, converted: 3 },
+    product_mix: { "Auto Loan": 14, "Home Loan": 12, "Personal Loan": 16, "Mortgage Loan": 6 }, weekly_trend: [2, 2, 1, 2, 2, 2],
+  },
+  {
+    id: 3, name: "Meera Iyer", email: "meera.iyer@idbibank.in", region: "Bengaluru", tenure_years: 7, initials: "MI",
+    new: 10, contacted: 23, converted: 13, rejected: 9, disbursed_amount: 22_500_000, target_conversions: 15, target_disbursal: 20_000_000, avg_propensity: 78,
+    treated: { total: 26, converted: 10 }, control: { total: 19, converted: 3 },
+    product_mix: { "Auto Loan": 9, "Home Loan": 18, "Personal Loan": 10, "Mortgage Loan": 18 }, weekly_trend: [2, 2, 2, 2, 3, 3],
+  },
+  {
+    id: 4, name: "Karan Malhotra", email: "karan.malhotra@idbibank.in", region: "Pune", tenure_years: 2, initials: "KM",
+    new: 18, contacted: 17, converted: 5, rejected: 12, disbursed_amount: 5_400_000, target_conversions: 14, target_disbursal: 12_000_000, avg_propensity: 58,
+    treated: { total: 10, converted: 3 }, control: { total: 24, converted: 2 },
+    product_mix: { "Auto Loan": 18, "Home Loan": 7, "Personal Loan": 22, "Mortgage Loan": 5 }, weekly_trend: [2, 2, 1, 0, 0, 0],
+  },
+  {
+    id: 5, name: "Sanya Reddy", email: "sanya.reddy@idbibank.in", region: "Hyderabad", tenure_years: 3, initials: "SR",
+    new: 9, contacted: 22, converted: 10, rejected: 8, disbursed_amount: 12_800_000, target_conversions: 14, target_disbursal: 14_000_000, avg_propensity: 69,
+    treated: { total: 23, converted: 8 }, control: { total: 17, converted: 2 },
+    product_mix: { "Auto Loan": 12, "Home Loan": 11, "Personal Loan": 14, "Mortgage Loan": 12 }, weekly_trend: [1, 1, 2, 2, 2, 2],
+  },
+];
+
+const LIVE_RM_META = {
+  id: 1, name: "Rhea Nair", email: "rm.demo@idbibank.in", region: "Mumbai South", tenure_years: 4, initials: "RN",
+  target_conversions: 12, target_disbursal: 12_000_000, weekly_trend: [1, 1, 2, 1, 1, 2],
+};
+
+const r1 = (x: number) => Math.round(x * 10) / 10;
+const rate = (part: number, whole: number) => (whole ? r1((part / whole) * 100) : 0);
+
+function trendDirection(t: number[]): TrendDirection {
+  if (t.length < 4) return "flat";
+  const h = Math.floor(t.length / 2);
+  const first = t.slice(0, h).reduce((a, b) => a + b, 0) / h;
+  const last = t.slice(h).reduce((a, b) => a + b, 0) / (t.length - h);
+  if (last > first + 0.3) return "up";
+  if (last < first - 0.3) return "down";
+  return "flat";
+}
+
+function coachingFor(rm: RMPerformance): string {
+  const name = rm.name.split(" ")[0];
+  const lift = r1(rm.treated.rate - rm.control.rate);
+  const convGap = Math.max(rm.target_conversions - rm.converted, 0);
+  if (rm.status === "ahead") {
+    return `${name} is exceeding target (${rm.attainment.toFixed(0)}% attainment) with a +${lift.toFixed(0)} pt AI-cohort lift — a model book; pair with peers to share playbook.`;
+  }
+  if (rm.status === "behind") {
+    if (rm.control.total > rm.treated.total) {
+      return `${name} is behind (${rm.attainment.toFixed(0)}%) and leaning on generic outreach (${rm.control.total} control vs ${rm.treated.total} AI leads) — migrate the control book to AI-personalized templates to close the ${lift.toFixed(0)} pt conversion gap.`;
+    }
+    return `${name} is behind (${rm.attainment.toFixed(0)}%) with ${rm.new} untouched leads — ${convGap} more conversions needed; prioritize the highest-propensity prospects this week.`;
+  }
+  if (rm.trend_direction === "down") {
+    return `${name} is on target but weekly conversions are slipping — schedule a pipeline review before momentum erodes; ${rm.new} fresh leads are waiting.`;
+  }
+  return `${name} is on pace (${rm.attainment.toFixed(0)}%) converting at ${rm.conversion_rate.toFixed(0)}% — nudge the ${rm.new} new leads to pull ahead of target.`;
+}
+
+function finalizeRM(raw: RawRM): RMPerformance {
+  const worked = raw.treated.total + raw.control.total;
+  const assigned = worked + raw.new;
+  const treatedRate = rate(raw.treated.converted, raw.treated.total);
+  const controlRate = rate(raw.control.converted, raw.control.total);
+  const convAttainment = rate(raw.converted, raw.target_conversions);
+  const disbursalAttainment = rate(raw.disbursed_amount, raw.target_disbursal);
+  const attainment = r1((convAttainment + disbursalAttainment) / 2);
+  const status: RMStatus = attainment >= 95 ? "ahead" : attainment >= 70 ? "on_track" : "behind";
+
+  const rm: RMPerformance = {
+    id: raw.id, name: raw.name, email: raw.email, region: raw.region, tenure_years: raw.tenure_years,
+    initials: raw.initials, is_live: !!raw.is_live,
+    assigned, new: raw.new, contacted: raw.contacted, converted: raw.converted, rejected: raw.rejected,
+    disbursed_amount: raw.disbursed_amount, conversion_rate: rate(raw.converted, worked),
+    target_conversions: raw.target_conversions, target_disbursal: raw.target_disbursal,
+    conv_attainment: convAttainment, disbursal_attainment: disbursalAttainment, attainment,
+    avg_propensity: r1(raw.avg_propensity),
+    treated: { total: raw.treated.total, converted: raw.treated.converted, rate: treatedRate },
+    control: { total: raw.control.total, converted: raw.control.converted, rate: controlRate },
+    product_mix: raw.product_mix, weekly_trend: raw.weekly_trend,
+    status, trend_direction: trendDirection(raw.weekly_trend), coaching: "",
+  };
+  rm.coaching = coachingFor(rm);
+  return rm;
+}
+
+function liveRMFromLeads(): RMPerformance {
+  const leads = state.leads;
+  const treated = leads.filter((l) => l.cohort === "Treated");
+  const control = leads.filter((l) => l.cohort === "Control");
+  const convertedLeads = leads.filter((l) => l.status === "Converted");
+  const disbursed = convertedLeads.reduce((a, l) => a + (l.eligible_loan_amount || 0), 0);
+  const props = leads.map((l) => l.propensity_score).filter((p) => p != null) as number[];
+  const avgProp = props.length ? r1((props.reduce((a, b) => a + b, 0) / props.length) * 100) : 0;
+  const productMix: Record<string, number> = {};
+  for (const lt of LOAN_TYPES) productMix[lt] = leads.filter((l) => l.loan_type === lt).length;
+
+  return finalizeRM({
+    ...LIVE_RM_META,
+    is_live: true,
+    new: leads.filter((l) => l.status === "New").length,
+    contacted: leads.filter((l) => l.status === "Contacted").length,
+    converted: convertedLeads.length,
+    rejected: leads.filter((l) => l.status === "Rejected").length,
+    disbursed_amount: disbursed,
+    avg_propensity: avgProp,
+    treated: { total: treated.length, converted: treated.filter((l) => l.status === "Converted").length },
+    control: { total: control.length, converted: control.filter((l) => l.status === "Converted").length },
+    product_mix: productMix,
+  });
+}
+
+function buildForecast(rms: RMPerformance[]): TeamForecast {
+  const now = new Date();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const daysElapsed = Math.max(now.getDate(), 1);
+  const factor = daysInMonth / daysElapsed;
+  const totalConverted = rms.reduce((a, r) => a + r.converted, 0);
+  const totalDisbursed = rms.reduce((a, r) => a + r.disbursed_amount, 0);
+  const targetConversions = rms.reduce((a, r) => a + r.target_conversions, 0);
+  const targetDisbursal = rms.reduce((a, r) => a + r.target_disbursal, 0);
+  const projectedDisbursal = Math.round(totalDisbursed * factor);
+  const ratio = targetDisbursal ? projectedDisbursal / targetDisbursal : 0;
+  const pace: RMStatus = ratio >= 1.0 ? "ahead" : ratio >= 0.85 ? "on_track" : "behind";
+  return {
+    projected_conversions: Math.round(totalConverted * factor),
+    target_conversions: targetConversions,
+    projected_disbursal: projectedDisbursal,
+    target_disbursal: targetDisbursal,
+    pace,
+    days_elapsed: daysElapsed,
+    days_in_month: daysInMonth,
+  };
+}
+
+function executiveSummary(c: TeamConsolidated, f: TeamForecast, rms: RMPerformance[]): string {
+  const best = rms.reduce((a, b) => (b.attainment > a.attainment ? b : a));
+  const weak = rms.reduce((a, b) => (b.attainment < a.attainment ? b : a));
+  const disbursedCr = c.total_disbursed / 1e7;
+  const targetCr = c.total_target_disbursal / 1e7;
+  const paceWord = f.pace === "ahead" ? "tracking ahead of plan" : f.pace === "on_track" ? "on pace with plan" : "trailing plan";
+  return (
+    `The team has disbursed ₹${disbursedCr.toFixed(2)} Cr — ${c.disbursal_attainment.toFixed(0)}% of the ₹${targetCr.toFixed(2)} Cr target — ` +
+    `across ${c.active_rms} RMs, and is ${paceWord} for month-end (projected ${f.projected_conversions} conversions vs a target of ${f.target_conversions}). ` +
+    `AI-personalized outreach is converting at ${c.treated.rate.toFixed(0)}% versus ${c.control.rate.toFixed(0)}% for the generic control cohort — ` +
+    `a decisive +${c.lift.toFixed(0)} pt lift that holds across the whole team. ${best.name} leads at ${best.attainment.toFixed(0)}% attainment, ` +
+    `while ${weak.name} needs attention at ${weak.attainment.toFixed(0)}% — recommend rebalancing the lagging book onto the AI cohort and ` +
+    `reviewing the untouched-lead backlog this week.`
+  );
+}
+
+function computeTeamPerformance(): TeamPerformance {
+  const rms = [liveRMFromLeads(), ...STATIC_ROSTER.map((r) => finalizeRM({ ...r }))];
+  const sum = (fn: (r: RMPerformance) => number) => rms.reduce((a, r) => a + fn(r), 0);
+
+  const tTotal = sum((r) => r.treated.total);
+  const tConv = sum((r) => r.treated.converted);
+  const cTotal = sum((r) => r.control.total);
+  const cConv = sum((r) => r.control.converted);
+  const treatedRate = rate(tConv, tTotal);
+  const controlRate = rate(cConv, cTotal);
+  const worked = tTotal + cTotal;
+
+  const totalConverted = sum((r) => r.converted);
+  const totalDisbursed = sum((r) => r.disbursed_amount);
+  const totalTargetDisbursal = sum((r) => r.target_disbursal);
+  const totalTargetConversions = sum((r) => r.target_conversions);
+  const best = rms.reduce((a, b) => (b.attainment > a.attainment ? b : a));
+  const weak = rms.reduce((a, b) => (b.attainment < a.attainment ? b : a));
+
+  const consolidated: TeamConsolidated = {
+    total_assigned: sum((r) => r.assigned),
+    total_new: sum((r) => r.new),
+    total_contacted: sum((r) => r.contacted),
+    total_converted: totalConverted,
+    total_rejected: sum((r) => r.rejected),
+    total_disbursed: totalDisbursed,
+    total_target_disbursal: totalTargetDisbursal,
+    total_target_conversions: totalTargetConversions,
+    conversion_rate: rate(totalConverted, worked),
+    disbursal_attainment: rate(totalDisbursed, totalTargetDisbursal),
+    conv_attainment: rate(totalConverted, totalTargetConversions),
+    active_rms: rms.length,
+    treated: { total: tTotal, converted: tConv, rate: treatedRate },
+    control: { total: cTotal, converted: cConv, rate: controlRate },
+    lift: r1(treatedRate - controlRate),
+    best_performer: best.name,
+    needs_attention: weak.name,
+  };
+
+  const forecast = buildForecast(rms);
+  const rmsSorted = [...rms].sort((a, b) => b.attainment - a.attainment);
+
+  return {
+    rms: rmsSorted,
+    consolidated,
+    forecast,
+    ai_summary: executiveSummary(consolidated, forecast, rms),
+    generated_at: new Date().toISOString(),
+  };
+}
+
 // ---------- public API (mirrors FastAPI endpoints) ----------
 
 export const engine = {
@@ -565,6 +802,10 @@ export const engine = {
     const lead = state.leads.find((l) => l.id === leadId);
     if (!lead) throw new Error("Lead not found");
     return { lead_id: leadId, channel, content: generateOutreachCopy(lead, channel) };
+  },
+
+  getTeamPerformance(): TeamPerformance {
+    return computeTeamPerformance();
   },
 
   getPerformance(): PerformanceStats {
