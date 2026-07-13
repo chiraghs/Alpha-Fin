@@ -58,7 +58,7 @@ To support high-scale deployments, Prospect Assist AI is designed for cloud-nati
 * **Campaign Efficacy & Conversion Lift Dashboard**: Segmenting prospects into Treated and Control cohorts allows the bank to isolate outreach conversion lift directly from database tables, verifying that the solution exceeds the target conversion rates.
 ```mermaid
 graph LR
-    subgraph Sources [1. Data Ingestion Sources]
+    subgraph Sources ["1. Data Ingestion Sources"]
         CB[Core Banking Ledger]
         IB[Internet Clickstream Logs]
         UPI[UPI Real-time Feeds]
@@ -66,14 +66,14 @@ graph LR
         CRM[Bank CRM History]
     end
 
-    subgraph AppEngine [2. Processing & Models Core]
+    subgraph AppEngine ["2. Processing & Models Core"]
         Lake[(Data Lake Processing)]
         FE[Feature Engineering & Timestamps]
         
-        subgraph MLModels [Decision Intelligence Models]
+        subgraph MLModels ["Decision Intelligence Models"]
             Income[Income Estimation]
             
-            subgraph IntentEngine [Intent Core]
+            subgraph IntentEngine ["Intent Core"]
                 Graph[Graph Clickstream Matching]
                 GBDT[GBDT Propensity Scorer]
                 Velocity[Intent Velocity Tracker]
@@ -89,11 +89,11 @@ graph LR
         LRI[Loan Readiness Index Calculator]
     end
 
-    subgraph Storage [3. Database Storage Layer]
+    subgraph Storage ["3. Database Storage Layer"]
         RDS[(AWS RDS / Local SQLite)]
     end
 
-    subgraph Presentation [4. Presentation Layer]
+    subgraph Presentation ["4. Presentation Layer"]
         UI[Relationship Manager Dashboard UI]
         ABDashboard[Campaign Efficacy & Conversion Lift]
         TwinAnalyzer[Behavioral Twin Portfolio Drilldown]
