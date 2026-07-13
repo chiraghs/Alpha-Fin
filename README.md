@@ -154,6 +154,21 @@ The codebase is split into a robust FastAPI python backend and a responsive dark
 
 ---
 
+## ✨ Next.js Frontend (v2)
+
+A production-grade **Next.js (App Router + TypeScript + Tailwind v4)** rebuild of the frontend lives in [`frontend-next/`](frontend-next/). It adds the official **IDBI Bank brand system** (Orange Passion `#F58220` / Observatory Green `#00836C` + recreated logo mark), **light & dark themes**, a working in-phone EMI calculator, a live pipeline event stream, a Behavioral Twin radar fingerprint, and the same in-browser Standalone Engine fallback — exported fully static for GitHub Pages.
+
+**One command starts everything** (FastAPI backend :8000 + Next.js frontend :3000):
+
+```bash
+./start.sh            # local dev — python venv + next dev, Ctrl+C stops both
+./start.sh --docker   # containerized — docker compose up --build
+```
+
+The launcher prints a LAN URL (e.g. `http://192.168.x.x:3000`) so the fully **mobile-responsive** UI can be opened from a phone on the same Wi-Fi — the app auto-derives the backend address from the page host, so live API data works on mobile too. Ports busy? Override them: `BACKEND_PORT=8010 FRONTEND_PORT=3100 ./start.sh`.
+
+The original vanilla JS prototype remains in `frontend/` (launched by the legacy `run_dev.sh`).
+
 ## 🚀 Quick Start (Unified Launcher)
 
 The repository includes a launcher script `run_dev.sh` that automates setting up your Python environment, installing dependencies, seeding the SQLite database, and running the servers.
