@@ -167,7 +167,7 @@ graph LR
         Sync["ETL & S3 Sync Engine"]
         S3[("AWS S3 External Tables (Parquet)")]
         DWH["Analytical DWH (Snowflake/Athena)"]
-        BI["Power BI Dashboard"]
+        BI["Power BI / Tableau Dashboard"]
         
         Sync --> S3
         S3 --> DWH
