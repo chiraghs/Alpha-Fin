@@ -19,8 +19,14 @@ import {
 // Backend location. When NEXT_PUBLIC_API_BASE isn't pinned, derive it from
 // the page's own hostname so phones/tablets on the same network reach the
 // FastAPI server too (a hardcoded "localhost" would point at the phone itself).
+// The env value may be a bare service URL (Render injects RENDER_EXTERNAL_URL,
+// e.g. "https://alpha-fin-api.onrender.com") — normalize it to end in "/api".
 function apiBase(): string {
-  if (process.env.NEXT_PUBLIC_API_BASE) return process.env.NEXT_PUBLIC_API_BASE;
+  const pinned = process.env.NEXT_PUBLIC_API_BASE;
+  if (pinned) {
+    const base = pinned.replace(/\/+$/, "");
+    return base.endsWith("/api") ? base : `${base}/api`;
+  }
   if (typeof window !== "undefined") {
     return `${window.location.protocol}//${window.location.hostname}:8000/api`;
   }

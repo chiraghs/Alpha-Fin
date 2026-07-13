@@ -1,0 +1,55 @@
+# ============================================================
+#  PROSPECT ASSIST AI — Render Blueprint (one-click deploy)
+#
+#  Deploy button (README) points Render at this file; it stands
+#  up both services on the free plan:
+#
+#    alpha-fin-api   FastAPI scoring engine   (Python web service)
+#    alpha-fin       Next.js static frontend  (static site + CDN)
+#
+#  The frontend build receives the backend's public URL through
+#  NEXT_PUBLIC_API_BASE (wired below via fromService), and the
+#  client normalizes it to ".../api". If the free-plan backend is
+#  cold-starting, the app automatically runs on the in-browser
+#  Standalone Engine, so the demo never shows a dead screen.
+# ============================================================
+
+services:
+  # ---------- FastAPI backend ----------
+  - type: web
+    name: alpha-fin-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    # Re-seed the SQLite sandbox on every boot (free-plan disks are
+    # ephemeral anyway) so judges always land on fresh demo data.
+    startCommand: python backend/seed.py && uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.4
+      # Optional: set to enable Gemini-generated outreach copy
+      # (falls back to the local template engine when absent).
+      - key: GEMINI_API_KEY
+        sync: false
+
+  # ---------- Next.js static frontend ----------
+  - type: web
+    name: alpha-fin
+    runtime: static
+    rootDir: frontend-next
+    buildCommand: npm ci && npm run build
+    staticPublishPath: out
+    envVars:
+      # Bare backend URL (https://alpha-fin-api.onrender.com);
+      # the client appends /api.
+      - key: NEXT_PUBLIC_API_BASE
+        fromService:
+          type: web
+          name: alpha-fin-api
+          envVarKey: RENDER_EXTERNAL_URL
+    routes:
+      # SPA fallback — static files are served first, misses land here.
+      - type: rewrite
+        source: /*
+        destination: /index.html

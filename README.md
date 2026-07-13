@@ -169,6 +169,23 @@ The launcher prints a LAN URL (e.g. `http://192.168.x.x:3000`) so the fully **mo
 
 The original vanilla JS prototype remains in `frontend/` (launched by the legacy `run_dev.sh`).
 
+---
+
+## ☁️ One-Click Cloud Deploy (Render)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/chiraghs/Alpha-Fin/tree/deploy)
+
+Clicking the button reads [`render.yaml`](render.yaml) from the `deploy` branch and provisions **both services on the free plan** — no manual configuration:
+
+| Service | What | Runtime |
+|---|---|---|
+| `alpha-fin-api` | FastAPI scoring engine (re-seeds the demo sandbox on every boot) | Python web service |
+| `alpha-fin` | Next.js static frontend on Render's CDN | Static site |
+
+The blueprint injects the backend's public URL into the frontend build (`NEXT_PUBLIC_API_BASE`), so the deployed app talks to the deployed API out of the box. If the free-plan backend is asleep (cold start ≈ 1 min), the app transparently runs on the **in-browser Standalone Engine** and flips to Live API on the next visit — the demo never shows a dead screen.
+
+**Demo logins** — password `idbi@2026`: `rm.demo@idbibank.in` (RM Hub + simulator) · `manager.demo@idbibank.in` (Branch Manager team cockpit).
+
 ## 🚀 Quick Start (Unified Launcher)
 
 The repository includes a launcher script `run_dev.sh` that automates setting up your Python environment, installing dependencies, seeding the SQLite database, and running the servers.
