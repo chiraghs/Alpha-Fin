@@ -56,7 +56,7 @@ graph LR
         FE[Feature Engineering & Timestamps]
         
         subgraph MLModels [Decision Intelligence Models]
-            Income[Model 1: Income Estimation]
+            Income[Income Estimation]
             
             subgraph IntentEngine [Intent Core]
                 Graph[Graph Clickstream Matching]
@@ -65,14 +65,13 @@ graph LR
             end
             
             LifeEvents[Life Event Detection Engine]
-            RiskModel[Model 3: Risk & Underwriting]
-            Conversion[Model 4: Conversion ML]
-            History[Model 5: Historical Conversion]
+            RiskModel[Risk & Underwriting]
+            Conversion[Conversion Propensity ML]
+            History[Historical Conversion Analysis]
         end
         
         Pruning{Risk Underwriting Gate Filter}
         LRI[Loan Readiness Index Calculator]
-        Ranking[Lead Ranker & Adjustable Slider Filter]
     end
 
     subgraph Storage [3. Database Storage Layer]
@@ -116,8 +115,7 @@ graph LR
     Pruning -->|Pass / Low-Medium Risk| LRI
     Pruning -->|Block / High Risk Subprime| Trash[Pruned Lead / Removed]
     
-    LRI --> Ranking
-    Ranking --> RDS
+    LRI --> RDS
     
     %% UI Presentation
     RDS --> UI
@@ -125,6 +123,108 @@ graph LR
     RDS --> TwinAnalyzer
     RDS --> Outreach
 ```
+
+## 🌐 Enterprise Distributed Microservices Architecture (Post-Submission Roadmap)
+
+For post-hackathon enterprise scaling, the monolithic prototype will transition into a highly available, decoupled **3-Repository Distributed Architecture** supported by industrial-grade API gateway, caching, and queuing layers:
+
+```mermaid
+graph LR
+    %% REPOSITORIES 1 & 2: DATA & MODEL PIPELINES (Side-by-Side)
+    subgraph Repo1 ["Repository 1: Ingestion Service & Data Lake Store"]
+        Feeds["Ledger / Clicks / UPI / Bureau / CRM"] --> Ingest["Ingesting Influx Engine"]
+        Ingest --> Lake[(Data Lake Store)]
+    end
+
+    subgraph Repo2 ["Repository 2: ML Multi Model Core"]
+        FE["Feature Engineering & Timestamps"]
+        
+        Income["Income Estimation Model"]
+        Intent["Intent & Propensity Model"]
+        LifeEvents["Life Event Detection Engine"]
+        RiskModel["Credit Risk & Underwriting Model"]
+        Conversion["Conversion Propensity Model"]
+        History["Historical Conversion Model"]
+        
+        %% Feature Engineering branches out to each model
+        FE --> Income
+        FE --> Intent
+        FE --> LifeEvents
+        FE --> RiskModel
+        FE --> Conversion
+        FE --> History
+        
+        %% Models feed into Risk Underwriting Gate
+        Income --> Risk{"Risk Gate Underwriting Filter"}
+        Intent --> Risk
+        LifeEvents --> Risk
+        RiskModel --> Risk
+        Conversion --> Risk
+        History --> Risk
+        
+        Risk -->|Write Scores & Risk Status| RDS2[(AWS RDS Model Database)]
+    end
+
+    %% Horizontal Side-by-Side Data Flow (Single entry point into Repo 2)
+    Lake -->|Asynchronous Event Inflow| FE
+```
+
+### Prospect AI Application (Prospect Assist AI: Behavioral Credit & Hyper-Targeted Lead Engine)
+
+```mermaid
+graph TD
+    %% REPOSITORY 3: EXPOSED CLIENT APPLICATION (Top-to-Bottom Gateway & Presentation)
+    subgraph Repo3 ["Repository 3: Exposed Client Application"]
+        User["Relationship Manager (RM)"] --> NGINX["NGINX Reverse Proxy"]
+        NGINX --> Limits["Rate Limiter & Idempotency Filter"]
+        Limits --> LB["Load Balancer"]
+        LB --> AppServer["Repository 3: FastAPI Application Server"]
+        
+        %% Database lookup path (vertical downwards)
+        RDS3[(AWS RDS App Database)] --> Redis["Redis Score Cache"]
+        Redis --> AppServer
+        
+        %% FastAPI App Server branches out directly to Client presentation views
+        AppServer --> UI["Relationship Manager Dashboard UI"]
+        AppServer --> ABDDashboard["Campaign Efficacy & Conversion Lift"]
+        AppServer --> TwinAnalyzer["Behavioral Twin Portfolio Drilldown"]
+        AppServer --> Outreach["AI Personalized Outreach Generator"]
+        
+        %% Flow after client services
+        UI --> Portfolio["Portfolio & Leaderboard Analyzer"]
+        TwinAnalyzer --> Portfolio
+        Outreach --> Portfolio
+        
+        Portfolio --> Campaign["Outreach Campaign Manager"]
+        Campaign --> SQS["AWS SQS Notification Queue"]
+        
+        SQS --> Worker["Notification Dispatch Worker"]
+        
+        %% Dispatch branches grouped in Borrower Lead
+        subgraph Borrower ["Borrower Lead"]
+            Email["Email Dispatch"]
+            SMS["SMS Gateway"]
+            Phone["Phone AI"]
+            WhatsApp["WhatsApp Messaging"]
+        end
+        
+        Worker --> Email
+        Worker --> SMS
+        Worker --> Phone
+        Worker --> WhatsApp
+    end
+```
+
+### 🛡️ Core Infrastructure & Resilience Layers:
+* **Decoupled Data & Model Pipelines (Repo 1 & Repo 2 Side-by-Side)**:
+    * **Repository 1: Ingestion Service & Data Lake Store** and **Repository 2: ML Multi Model Core** function side-by-side to ingest banking inputs, write to the Data Lake, asynchronously trigger scoring models, and persist pre-approved parameters directly to the model database.
+    * Decoupling the data lake from execution ensures that heavy machine learning calculations do not block raw transaction logging or clickstream ingestion feeds.
+* **Exposed Client Application (Repository 3 - Decoupled Vertical Gateway Pyramid)**:
+    * Front-facing RM dashboard interactions flow vertically: **`User (RM)` ➔ `NGINX Proxy` ➔ `Rate Limiter/Idempotency Security Gateway` ➔ `Load Balancer` ➔ `Repository 3 App Server` ➔ `Redis Cache / App DB` ➔ `Client Presentation Views (Dashboard, Lift, Twin, Outreach)`**.
+    * Repository 3 is purposefully disconnected at the network level from Repository 1 and Repository 2 to ensure absolute security and isolated client-facing execution.
+    * **Asynchronous SQS/Celery Outbox Queues**: Offloads personalized outreach and automated CRM alert dispatches to background Celery workers downstream of the Client UI views.
+
+---
 
 The codebase is split into a robust FastAPI python backend and a responsive dark-themed frontend:
 

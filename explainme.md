@@ -244,3 +244,17 @@ $$\text{Lead Score} = 0.35 \times \text{Intent} + 0.30 \times \text{Repayment Ca
 * Track Intent Velocity to tag surging leads with a `⚡ Call Now` badge.
 * Implement the Loan Readiness Index (LRI) using a soft-bounded product formula.
 * Render interactive explainable AI timeline checklists on both the Leads Board and Outreach modal.
+
+### 📅 Phase 8: Distributed Microservices Migration & Enterprise Scaling (Post-Submission MVP) ➔ `[ ] PLANNED`
+* Decouple the monolithic codebase into a highly available, **3-Repository Distributed Architecture**:
+  * **Repository 1: Data Lake Ingestion**: Captures UPI ledger logs, banking feeds, and click events.
+  * **Repository 2: ML Multi Model Core**: Executes GBDT intent estimators, risk gates, and LRI multipliers.
+  * **Repository 3: Application Server**: Serves user-facing APIs, A/B lift logs, and web UI dashboards.
+* Introduce an **Enterprise Access Gateway (NGINX + Load Balancer)**:
+  * Manages SSL termination and routes traffic dynamically across server groups.
+  * Enforces **API Rate Limiting** to protect prediction nodes.
+  * Filters inbound requests using **Idempotency Keys** to prevent duplicate transactions.
+* Setup **Asynchronous Notification Message Queues**:
+  * Integrates RabbitMQ / AWS SQS with Celery workers to asynchronously queue and dispatch personalized AI WhatsApp/email outreach campaigns.
+* Deploy static assets via global **CDNs** to deliver frontend files under 100ms response times.
+
