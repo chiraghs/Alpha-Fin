@@ -1,454 +1,283 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prospect Assist AI - Retail Lending Intent Engine</title>
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="style.css">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Prospect Assist AI · IDBI Innovate 2026</title>
+<meta name="description" content="Behavioral Credit & Hyper-Targeted Lead Engine — real-time transaction intelligence triggering hyper-personalized retail lending. IDBI Innovate 2026, Track 02." />
+<link rel="icon" type="image/png" href="assets/favicon.png" />
+
+<!-- ============================================================
+     ONE PLACE TO EDIT: paste your Render frontend URL below.
+     Every launch button on this page reads it from here.
+     ============================================================ -->
+<script>
+  const APP_URL = "https://alpha-fin.onrender.com"; /* ← REPLACE with your Render URL */
+</script>
+
+<style>
+  :root {
+    --page: #f2f6f4;
+    --surface: #ffffff;
+    --surface-2: #e9f1ee;
+    --ink: #0a1f1a;
+    --ink-2: #46584f;
+    --ink-3: #7d8d86;
+    --green: #00836c;
+    --green-strong: #00594a;
+    --green-soft: #d8efe8;
+    --orange: #f58220;
+    --orange-strong: #c95f04;
+    --orange-soft: #fdecd9;
+    --hairline: rgba(10, 31, 26, 0.09);
+    --shadow: 0 1px 2px rgba(10,31,26,.04), 0 16px 40px -18px rgba(10,31,26,.18);
+    --hero-grad: linear-gradient(120deg, #013d33 0%, #00594a 35%, #00836c 75%, #019a7e 100%);
+    --btn-grad: linear-gradient(135deg, #00594a 0%, #00836c 55%, #00a184 100%);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --page: #06100d;
+      --surface: #0d1a16;
+      --surface-2: #12211c;
+      --ink: #eef5f2;
+      --ink-2: #a8bab2;
+      --ink-3: #6f817a;
+      --green: #1da98c;
+      --green-strong: #3ecdae;
+      --green-soft: #10322a;
+      --orange-strong: #ffa14e;
+      --orange-soft: #33210f;
+      --hairline: rgba(255,255,255,.09);
+      --shadow: 0 1px 2px rgba(0,0,0,.5), 0 18px 44px -18px rgba(0,0,0,.7);
+      --hero-grad: linear-gradient(120deg, #04241d 0%, #0a4237 40%, #0f6351 75%, #14806a 100%);
+      --btn-grad: linear-gradient(135deg, #0b5a4a 0%, #12866e 55%, #1da98c 100%);
+    }
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: "Plus Jakarta Sans", ui-rounded, system-ui, -apple-system, "Segoe UI", sans-serif;
+    background:
+      radial-gradient(60rem 32rem at 110% -10%, color-mix(in srgb, var(--green) 9%, transparent), transparent 60%),
+      radial-gradient(50rem 30rem at -15% 108%, color-mix(in srgb, var(--orange) 7%, transparent), transparent 55%),
+      var(--page);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+  img { max-width: 100%; }
+
+  /* ---------- header ---------- */
+  header {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    max-width: 1080px; width: 100%; margin: 0 auto; padding: 20px 24px;
+  }
+  .lockup { display: flex; align-items: center; gap: 12px; }
+  .lockup img { width: 40px; height: 40px; object-fit: cover; }
+  .lockup b { font-size: 18px; letter-spacing: .04em; color: var(--green); }
+  .lockup b span { font-weight: 300; color: var(--ink); }
+  .lockup small { display: block; font-size: 9.5px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-3); }
+  .gh {
+    font-size: 12.5px; font-weight: 700; color: var(--ink-2); text-decoration: none;
+    border: 1px solid var(--hairline); border-radius: 999px; padding: 8px 16px;
+    background: var(--surface); transition: .2s;
+  }
+  .gh:hover { color: var(--green); border-color: var(--green); }
+
+  /* ---------- hero ---------- */
+  .hero {
+    max-width: 1080px; width: 100%; margin: 12px auto 0; padding: 0 24px;
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+  }
+  .hero-card {
+    position: relative; overflow: hidden; width: 100%;
+    border-radius: 32px; padding: 56px 28px 60px;
+    background: var(--hero-grad); color: #fff; box-shadow: var(--shadow);
+  }
+  .arc { position: absolute; border-radius: 50%; border: 1.5px solid rgba(255,255,255,.13); pointer-events: none; }
+  .arc.a1 { width: 42rem; height: 42rem; right: -14rem; top: -18rem; }
+  .arc.a2 { width: 26rem; height: 26rem; right: -6rem; top: -9rem; border-color: rgba(255,255,255,.2); }
+  .arc.a3 { width: 30rem; height: 30rem; left: -12rem; bottom: -16rem; }
+
+  .badge {
+    display: inline-block; background: var(--orange); color: #fff;
+    font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+    border-radius: 999px; padding: 6px 16px;
+  }
+  .hero-logo {
+    width: 84px; height: 84px; border-radius: 24px; background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px; box-shadow: 0 14px 34px -12px rgba(0,0,0,.45);
+  }
+  .hero-logo img { width: 58px; height: 58px; object-fit: cover; }
+  h1 { font-size: clamp(30px, 5.4vw, 52px); line-height: 1.12; font-weight: 800; max-width: 780px; margin: 18px auto 0; }
+  h1 em { font-style: normal; color: #ffc38a; }
+  .sub { max-width: 640px; margin: 16px auto 0; font-size: clamp(14px, 2vw, 16.5px); line-height: 1.65; color: rgba(255,255,255,.82); }
+
+  .cta-row { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; margin-top: 34px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    font: inherit; font-size: 15.5px; font-weight: 800; text-decoration: none;
+    border-radius: 999px; padding: 16px 34px; cursor: pointer; border: 0;
+    transition: transform .22s ease, box-shadow .22s ease;
+  }
+  .btn-primary { background: #fff; color: var(--green-strong); box-shadow: 0 18px 40px -14px rgba(0,0,0,.5); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 26px 52px -16px rgba(0,0,0,.55); }
+  .btn-primary .arrow { transition: transform .22s ease; }
+  .btn-primary:hover .arrow { transform: translateX(4px); }
+  .btn-ghost { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.3); backdrop-filter: blur(6px); }
+  .btn-ghost:hover { background: rgba(255,255,255,.2); }
+  .cta-note { margin-top: 14px; font-size: 11.5px; color: rgba(255,255,255,.55); }
+
+  /* ---------- stats strip ---------- */
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;
+    max-width: 860px; width: calc(100% - 48px); margin: -34px auto 0; position: relative; z-index: 2;
+  }
+  .stat {
+    background: var(--surface); border: 1px solid var(--hairline); border-radius: 20px;
+    box-shadow: var(--shadow); padding: 18px 14px; text-align: center;
+  }
+  .stat b { display: block; font-size: 26px; font-weight: 800; color: var(--green); }
+  .stat b.orange { color: var(--orange-strong); }
+  .stat span { display: block; margin-top: 4px; font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+
+  /* ---------- features ---------- */
+  .features {
+    max-width: 1080px; width: 100%; margin: 54px auto 0; padding: 0 24px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px;
+  }
+  .feature {
+    background: var(--surface); border: 1px solid var(--hairline); border-radius: 24px;
+    padding: 24px; box-shadow: var(--shadow); transition: transform .25s ease;
+  }
+  .feature:hover { transform: translateY(-3px); }
+  .feature .ic {
+    width: 42px; height: 42px; border-radius: 14px; display: flex; align-items: center; justify-content: center;
+    font-size: 20px; background: var(--green-soft); margin-bottom: 14px;
+  }
+  .feature:nth-child(even) .ic { background: var(--orange-soft); }
+  .feature h3 { font-size: 15px; font-weight: 800; }
+  .feature p { margin-top: 7px; font-size: 12.8px; line-height: 1.6; color: var(--ink-2); }
+
+  /* ---------- demo access ---------- */
+  .demo {
+    max-width: 1080px; width: calc(100% - 48px); margin: 44px auto 0;
+    border: 1.5px dashed color-mix(in srgb, var(--orange) 55%, transparent);
+    background: var(--orange-soft); border-radius: 24px; padding: 22px 24px;
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 14px 34px; text-align: center;
+  }
+  .demo h4 { width: 100%; font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--orange-strong); }
+  .demo .cred { font-size: 13px; color: var(--ink-2); }
+  .demo .cred b { color: var(--ink); }
+  .demo code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; font-weight: 700;
+    background: var(--surface); border: 1px solid var(--hairline); border-radius: 8px; padding: 2px 8px;
+  }
+
+  /* ---------- footer ---------- */
+  footer {
+    margin-top: auto; padding: 44px 24px 30px; text-align: center;
+    font-size: 11.5px; color: var(--ink-3);
+  }
+  footer a { color: var(--green); font-weight: 700; text-decoration: none; }
+
+  @media (max-width: 560px) {
+    .hero-card { padding: 44px 18px 52px; border-radius: 26px; }
+    .btn { width: 100%; justify-content: center; }
+    .stats { margin-top: -26px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .btn, .feature, .btn-primary .arrow { transition: none; }
+  }
+</style>
 </head>
 <body>
-    <div class="app-container">
-        <!-- HEADER -->
-        <header class="app-header">
-            <div class="logo-area">
-                <i class="fa-solid fa-building-columns brand-icon"></i>
-                <div class="brand-text">
-                    <h1>PROSPECT ASSIST AI</h1>
-                    <span>IDBI Innovate 2026 // Track 02</span>
-                </div>
-            </div>
-            <div class="header-actions">
-                <button id="btnResetDB" class="btn btn-secondary">
-                    <i class="fa-solid fa-rotate-left"></i> Reset Sandbox DB
-                </button>
-                <div class="status-indicator">
-                    <span class="dot pulse"></span> Sandbox Online
-                </div>
-            </div>
-        </header>
 
-        <!-- MAIN LAYOUT -->
-        <main class="split-view">
-            <!-- LEFT PANEL: CUSTOMER MOBILE SIMULATOR -->
-            <section class="left-panel">
-                <div class="panel-header">
-                    <h2><i class="fa-solid fa-mobile-screen-button"></i> Customer Portal Simulator</h2>
-                    <p>Select a customer to act on behalf of and trigger real-time events</p>
-                </div>
-                
-                <div class="selector-card">
-                    <label for="customerSelect">Active Customer Profile:</label>
-                    <select id="customerSelect" class="form-select">
-                        <!-- Loaded dynamically -->
-                    </select>
-                </div>
+<header>
+  <div class="lockup">
+    <img src="assets/idbi-emblem.png" alt="IDBI Bank emblem" />
+    <div>
+      <b>IDBI <span>BANK</span></b>
+      <small>Prospect Assist AI</small>
+    </div>
+  </div>
+  <a class="gh" href="https://github.com/chiraghs/Alpha-Fin" target="_blank" rel="noopener">View on GitHub</a>
+</header>
 
-                <div class="phone-frame-wrapper">
-                    <div class="phone-frame">
-                        <div class="phone-screen">
-                            <!-- Phone Status Bar -->
-                            <div class="phone-status-bar">
-                                <span class="time">12:00</span>
-                                <div class="indicators">
-                                    <i class="fa-solid fa-wifi"></i>
-                                    <i class="fa-solid fa-signal"></i>
-                                    <i class="fa-solid fa-battery-full"></i>
-                                </div>
-                            </div>
-                            <!-- Phone App Header -->
-                            <div class="phone-app-header">
-                                <div class="bank-title"><i class="fa-solid fa-b"></i> IDBI Go Mobile+</div>
-                                <div class="user-greeting">Hello, <span id="phoneUserName">Aarav</span></div>
-                            </div>
-                            <!-- Phone App Content -->
-                            <div class="phone-app-content">
-                                <!-- Account Card -->
-                                <div class="account-card">
-                                    <span class="card-label">Primary Account</span>
-                                    <h3 id="phoneUserAccount">IDBI100892931</h3>
-                                    <div class="card-footer">
-                                        <span>Savings Balance</span>
-                                        <strong id="phoneUserBalance">₹1,42,000.00</strong>
-                                    </div>
-                                </div>
-
-                                <!-- App Navigation/Actions -->
-                                <div class="app-section">
-                                    <h4>Explore Products</h4>
-                                    <div class="product-grid">
-                                        <button class="product-btn" onclick="logClickstream('/auto-loan', 'VIEW')">
-                                            <i class="fa-solid fa-car"></i>
-                                            <span>Auto Loan</span>
-                                        </button>
-                                        <button class="product-btn" onclick="logClickstream('/home-loan', 'VIEW')">
-                                            <i class="fa-solid fa-house-chimney"></i>
-                                            <span>Home Loan</span>
-                                        </button>
-                                        <button class="product-btn" onclick="logClickstream('/personal-loan', 'VIEW')">
-                                            <i class="fa-solid fa-user-tie"></i>
-                                            <span>Personal Loan</span>
-                                        </button>
-                                        <button class="product-btn" onclick="logClickstream('/mortgage-loan', 'VIEW')">
-                                            <i class="fa-solid fa-hand-holding-dollar"></i>
-                                            <span>Mortgage</span>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- Calculator Action -->
-                                <div class="app-section">
-                                    <h4>Financial Tools</h4>
-                                    <div class="calculator-trigger" onclick="logClickstream('/loan-calculator', 'CALCULATE_EMI')">
-                                        <div class="calc-icon"><i class="fa-solid fa-calculator"></i></div>
-                                        <div class="calc-text">
-                                            <h5>Calculate Loan EMIs</h5>
-                                            <p>Check dynamic monthly payments instantly</p>
-                                        </div>
-                                        <i class="fa-solid fa-chevron-right arrow"></i>
-                                    </div>
-                                </div>
-
-                                <!-- Quick Event Simulator Actions (HACKATHON POWER BUTTONS) -->
-                                <div class="app-section hack-triggers">
-                                    <h4>Simulation Triggers</h4>
-                                    <p class="section-desc">Instantly push realistic transactions or behaviors into the system to watch the RM board update:</p>
-                                    
-                                    <button class="btn btn-hack btn-hike" onclick="triggerSalaryHike()">
-                                        <i class="fa-solid fa-trend-up"></i> Simulate 15% Salary Increment
-                                    </button>
-                                    <button class="btn btn-hack btn-auto" onclick="triggerAutoSearch()">
-                                        <i class="fa-solid fa-car-side"></i> Browse Auto Loan Page (3x hits)
-                                    </button>
-                                    <button class="btn btn-hack btn-decor" onclick="triggerDecorSpend()">
-                                        <i class="fa-solid fa-couch"></i> Spend ₹65,000 at Home Decor Vendor
-                                    </button>
-                                    <button class="btn btn-hack btn-penalty" onclick="triggerCcPenalty()">
-                                        <i class="fa-solid fa-circle-exclamation"></i> Hit Credit Card Late Fee Penalty
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- RIGHT PANEL: RM COMMAND CENTER -->
-            <section class="right-panel">
-                <div class="panel-header" style="display: flex; justify-content: space-between; align-items: start; width: 100%;">
-                    <div>
-                        <h2><i class="fa-solid fa-chart-line"></i> Relationship Manager Hub</h2>
-                        <p>Real-time underwriting feed, customer propensity tracking, and AI-driven campaign triggers</p>
-                    </div>
-                    <div id="connectionStatusBadge" class="connection-status-badge live-connected" style="margin-top: 4px;">
-                        <i class="fa-solid fa-circle pulse-dot"></i> Live API
-                    </div>
-                </div>
-
-                <!-- Stats summary strip -->
-                <div class="stats-strip">
-                    <div class="stat-card">
-                        <span class="stat-label">Total Leads</span>
-                        <h3 id="statTotalLeads">0</h3>
-                    </div>
-                    <div class="stat-card hot-stat">
-                        <span class="stat-label">Hot Leads</span>
-                        <h3 id="statHotLeads">0</h3>
-                    </div>
-                    <div class="stat-card target-stat">
-                        <span class="stat-label">Conversion Rate</span>
-                        <h3>>30% <span class="badge">Target</span></h3>
-                    </div>
-                </div>
-                <!-- NAVIGATION TABS -->
-                <div class="rm-nav-tabs">
-                    <button id="btnTabLeads" class="nav-tab-btn active" onclick="switchRMView('leads')">
-                        <i class="fa-solid fa-list-check"></i> Prioritized Leads & Outreach
-                    </button>
-                    <button id="btnTabPortfolio" class="nav-tab-btn" onclick="switchRMView('portfolio')">
-                        <i class="fa-solid fa-users-gear"></i> Customer Twin Portfolio
-                    </button>
-                </div>
-
-                <!-- TAB 1: LEADS & OUTREACH HUB -->
-                <div id="rmViewLeads" class="tab-pane-content">
-                    <!-- A/B TESTING PERFORMANCE CARD -->
-                    <div class="performance-card">
-                        <div class="card-header">
-                            <h3><i class="fa-solid fa-square-poll-vertical"></i> Campaign Efficacy & Conversion Lift</h3>
-                            <span class="refresh-indicator"><i class="fa-solid fa-calculator"></i> Real-time Impact Assessment</span>
-                        </div>
-                        <div class="perf-metrics">
-                            <div class="perf-metric-group treated-group">
-                                <span class="grp-label"><i class="fa-solid fa-wand-magic-sparkles"></i> Treated (AI Assist)</span>
-                                <div class="grp-val-line">
-                                    <h4 id="perfTreatedRate">0.0%</h4>
-                                    <span class="grp-fraction" id="perfTreatedFraction">(0/0 Conv)</span>
-                                </div>
-                                <div class="progress-bar-container"><div class="progress-bar green-bar" id="perfTreatedProgress" style="width: 0%;"></div></div>
-                            </div>
-                            <div class="perf-metric-group control-group">
-                                <span class="grp-label"><i class="fa-solid fa-envelope-open-text"></i> Control (Spam)</span>
-                                <div class="grp-val-line">
-                                    <h4 id="perfControlRate">0.0%</h4>
-                                    <span class="grp-fraction" id="perfControlFraction">(0/0 Conv)</span>
-                                </div>
-                                <div class="progress-bar-container"><div class="progress-bar grey-bar" id="perfControlProgress" style="width: 0%;"></div></div>
-                            </div>
-                            <div class="perf-metric-group lift-group">
-                                <span class="grp-label">Conversion Lift</span>
-                                <h4 id="perfLiftRate">+0.0%</h4>
-                                <span class="lift-badge" id="perfLiftStatus">Target Met</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- LEAD BOARD TABLE -->
-                    <div class="leads-card">
-                        <div class="card-header flex-header">
-                            <h3><i class="fa-solid fa-list-check"></i> Prioritized Leads</h3>
-                            <div class="threshold-control">
-                                <label for="thresholdSlider">Min Lead Score: <strong id="thresholdLabel">70%</strong></label>
-                                <input type="range" id="thresholdSlider" min="35" max="95" value="70" step="5" class="threshold-slider" oninput="changeThreshold(this.value)">
-                            </div>
-                        </div>
-                        <div class="table-responsive">
-                            <table class="leads-table">
-                                <thead>
-                                    <tr>
-                                        <th>Customer Name</th>
-                                        <th>Target Product</th>
-                                        <th>Disposable Income</th>
-                                        <th>Credit Score</th>
-                                        <th>Readiness (LRI)</th>
-                                        <th>Cohort</th>
-                                        <th>Eligible Limit</th>
-                                        <th>Outreach</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="leadsTableBody">
-                                    <!-- Loaded dynamically -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TAB 2: BEHAVIORAL TWIN PORTFOLIO HUB -->
-                <div id="rmViewPortfolio" class="tab-pane-content hidden">
-                    <div class="twin-portfolio-layout">
-                        <!-- Left Sidebar: Customer List selector -->
-                        <div class="portfolio-sidebar">
-                            <h4>Customer Profiles</h4>
-                            <div id="portfolioCustomerList" class="portfolio-list">
-                                <!-- Loaded dynamically -->
-                            </div>
-                        </div>
-                        
-                        <!-- Right Detail: Deep twin profile display -->
-                        <div class="portfolio-detail-card">
-                            <div id="twinDetailEmpty" class="detail-empty-state">
-                                <i class="fa-solid fa-users-gear"></i>
-                                <p>Select a customer from the left list to inspect their detailed Behavioral Financial Twin scorecard, explainable rating logs, and cross-selling loan limits.</p>
-                            </div>
-                            
-                            <div id="twinDetailContent" class="detail-content hidden">
-                                <div class="detail-customer-header">
-                                    <div>
-                                        <h3 id="twinDetailName">Vikram Iyer</h3>
-                                        <span id="twinDetailAccNum" class="detail-acc-label">A/C: 9876543210</span>
-                                    </div>
-                                    <span id="twinDetailRisk" class="badge">Low Risk</span>
-                                </div>
-                                <hr class="divider">
-                                
-                                <div class="product-selector-twin-wrapper">
-                                    <label for="twinProductSelector">Inspect Product Twin: </label>
-                                    <select id="twinProductSelector" class="twin-product-select" onchange="renderSelectedTwinProduct()">
-                                        <option value="Auto Loan">🚗 Auto Loan</option>
-                                        <option value="Home Loan">🏠 Home Loan</option>
-                                        <option value="Personal Loan">💰 Personal Loan</option>
-                                        <option value="Mortgage Loan">🏢 Mortgage Loan</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="twin-grid-large">
-                                    <div class="twin-progress-card">
-                                        <div class="progress-card-header">
-                                            <span class="score-label">Repayment Capacity</span>
-                                            <strong id="twinDetailRepaymentVal">0.0%</strong>
-                                        </div>
-                                        <div class="progress-bar-container-large"><div class="progress-bar-large green-bar" id="twinDetailRepaymentProgress" style="width: 0%;"></div></div>
-                                    </div>
-                                    <div class="twin-progress-card">
-                                        <div class="progress-card-header">
-                                            <span class="score-label">Intent Score (GBDT)</span>
-                                            <strong id="twinDetailIntentVal">0.0</strong>
-                                        </div>
-                                        <div class="progress-bar-container-large"><div class="progress-bar-large cyan-bar" id="twinDetailIntentProgress" style="width: 0%;"></div></div>
-                                    </div>
-                                    <div class="twin-progress-card">
-                                        <div class="progress-card-header">
-                                            <span class="score-label">Financial Discipline</span>
-                                            <strong id="twinDetailDisciplineVal">0.0</strong>
-                                        </div>
-                                        <div class="progress-bar-container-large"><div class="progress-bar-large blue-bar" id="twinDetailDisciplineProgress" style="width: 0%;"></div></div>
-                                    </div>
-                                    <div class="twin-progress-card">
-                                        <div class="progress-card-header">
-                                            <span class="score-label">Spending Stability</span>
-                                            <strong id="twinDetailStabilityVal">0.0</strong>
-                                        </div>
-                                        <div class="progress-bar-container-large"><div class="progress-bar-large green-bar" id="twinDetailStabilityProgress" style="width: 0%;"></div></div>
-                                    </div>
-                                    <div class="twin-progress-card">
-                                        <div class="progress-card-header">
-                                            <span class="score-label">Income Confidence</span>
-                                            <strong id="twinDetailConfidenceVal">0.0</strong>
-                                        </div>
-                                        <div class="progress-bar-container-large"><div class="progress-bar-large yellow-bar" id="twinDetailConfidenceProgress" style="width: 0%;"></div></div>
-                                    </div>
-                                    <div class="twin-progress-card">
-                                        <div class="progress-card-header">
-                                            <span class="score-label">Offer Acceptance</span>
-                                            <strong id="twinDetailAcceptanceVal">0.0%</strong>
-                                        </div>
-                                        <div class="progress-bar-container-large"><div class="progress-bar-large purple-bar" id="twinDetailAcceptanceProgress" style="width: 0%;"></div></div>
-                                    </div>
-                                </div>
-                                
-                                <div class="twin-composite-metric-large">
-                                    <span>Weighted Lead Score:</span>
-                                    <h2 id="twinDetailLeadScore">0.0%</h2>
-                                </div>
-                                
-                                <div class="twin-analysis-narration">
-                                    <h4><i class="fa-solid fa-brain"></i> Explainable AI Narrative Profile</h4>
-                                    <p id="twinDetailNarrative">Loading analytical profile narrative...</p>
-                                </div>
-                                
-                                <div class="twin-eligibility-summary">
-                                    <h4><i class="fa-solid fa-circle-check"></i> Eligible Loan Products & Underwriting Limits</h4>
-                                    <div class="offers-grid-small" id="twinDetailOffers">
-                                        <!-- Loaded dynamically -->
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- OUTREACH CAMPAIGN MODAL DIALOG -->
-                <div id="outreachDrawer" class="outreach-drawer hidden">
-                    <div class="outreach-modal-card">
-                        <div class="drawer-header">
-                            <h3><i class="fa-solid fa-paper-plane"></i> Outreach Campaign</h3>
-                            <button class="btn-close-drawer" onclick="closeOutreachDrawer()"><i class="fa-solid fa-xmark"></i></button>
-                        </div>
-                        <div class="drawer-content">
-                        <div class="lead-context-summary">
-                            <p>Generating campaign outreach for <strong id="outreachCustomerName">Aarav Mehta</strong> for a <strong id="outreachLoanType">Auto Loan</strong> of up to <strong id="outreachAmount">₹0</strong>.</p>
-                            <div id="outreachControlWarning" class="control-warning-banner hidden">
-                                <i class="fa-solid fa-circle-exclamation"></i> <strong>Control Group Case:</strong> This customer is in the Control group. Generating generic pre-approved templates instead of hyper-personalized behavioral AI copy.
-                            </div>
-                            
-                            <!-- Behavioral Financial Twin Dynamic Profile Grid -->
-                            <div id="financialTwinSection" class="financial-twin-section">
-                                <h4><i class="fa-solid fa-dna"></i> Behavioral Financial Twin</h4>
-                                <div class="twin-grid">
-                                    <div class="twin-score-card">
-                                        <span class="score-label">Repayment Capacity</span>
-                                        <strong id="twinRepayment">0.0%</strong>
-                                    </div>
-                                    <div class="twin-score-card">
-                                        <span class="score-label">Intent Score</span>
-                                        <strong id="twinIntent">0.0</strong>
-                                    </div>
-                                    <div class="twin-score-card">
-                                        <span class="score-label">Financial Discipline</span>
-                                        <strong id="twinDiscipline">0.0</strong>
-                                    </div>
-                                    <div class="twin-score-card">
-                                        <span class="score-label">Spending Stability</span>
-                                        <strong id="twinStability">0.0</strong>
-                                    </div>
-                                    <div class="twin-score-card">
-                                        <span class="score-label">Income Confidence</span>
-                                        <strong id="twinIncomeConf">0.0</strong>
-                                    </div>
-                                    <div class="twin-score-card">
-                                        <span class="score-label">Offer Acceptance</span>
-                                        <strong id="twinAcceptance">0.0%</strong>
-                                    </div>
-                                </div>
-                                <div class="twin-composite-score">
-                                    <span>Loan Readiness Index (LRI):</span>
-                                    <strong id="twinLeadScore">0.0%</strong>
-                                </div>
-                                <div id="outreachTimelineReasons" style="margin-top: 1.25rem; border-top: 1px dashed rgba(255,255,255,0.15); padding-top: 1rem;">
-                                    <!-- Populated dynamically -->
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="channel-tabs">
-                            <button id="tabWhatsapp" class="tab-btn active" onclick="switchOutreachChannel('whatsapp')">
-                                <i class="fa-brands fa-whatsapp"></i> WhatsApp
-                            </button>
-                            <button id="tabEmail" class="tab-btn" onclick="switchOutreachChannel('email')">
-                                <i class="fa-solid fa-envelope"></i> Email
-                            </button>
-                            <button id="tabCallScript" class="tab-btn" onclick="switchOutreachChannel('call_script')">
-                                <i class="fa-solid fa-phone"></i> RM Script
-                            </button>
-                        </div>
-
-                        <div class="outreach-text-wrapper">
-                            <div id="outreachContentLoader" class="loader-spinner hidden">
-                                <i class="fa-solid fa-circle-notch fa-spin"></i> Generating script...
-                            </div>
-                            <pre id="outreachContentText" class="outreach-pre">Click generate to view content...</pre>
-                        </div>
-
-                        <div class="drawer-actions">
-                            <button id="btnCopyOutreach" class="btn btn-primary">
-                                <i class="fa-solid fa-copy"></i> Copy to Clipboard
-                            </button>
-                            
-                            <div class="drawer-actions-divider"></div>
-                            
-                            <div class="outcome-section">
-                                <span class="outcome-label">Log Campaign Result:</span>
-                                <div class="outcome-buttons">
-                                    <button class="btn btn-outcome btn-convert" onclick="markLeadStatus('Converted')">
-                                        <i class="fa-solid fa-circle-check"></i> Convert Lead
-                                    </button>
-                                    <button class="btn btn-outcome btn-reject" onclick="markLeadStatus('Rejected')">
-                                        <i class="fa-solid fa-circle-xmark"></i> Reject Lead
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            </section>
-        </main>
+<main>
+  <section class="hero">
+    <div class="hero-card">
+      <span class="arc a1"></span><span class="arc a2"></span><span class="arc a3"></span>
+      <span class="badge">IDBI Innovate 2026 · Track 02</span>
+      <div class="hero-logo" style="margin-top:26px"><img src="assets/idbi-emblem.png" alt="" /></div>
+      <h1>Turn everyday banking signals into <em>ready-to-convert</em> lending leads.</h1>
+      <p class="sub">
+        A Behavioral Credit &amp; Hyper-Targeted Lead Engine: five explainable ML models read live
+        clickstream and transaction signals, underwrite true disposable income, gate risk, and hand
+        Relationship Managers AI-personalized outreach — with a Branch Manager cockpit watching the whole team.
+      </p>
+      <div class="cta-row">
+        <a class="btn btn-primary" data-app-link href="#">
+          Launch the Live App <span class="arrow">→</span>
+        </a>
+        <a class="btn btn-ghost" href="https://github.com/chiraghs/Alpha-Fin#readme" target="_blank" rel="noopener">
+          Read the docs
+        </a>
+      </div>
+      <p class="cta-note">Hosted on Render · free-plan cold start may take ~1 minute — the app runs in-browser meanwhile.</p>
     </div>
 
-    <!-- Notification Toast -->
-    <div id="toastNotification" class="toast hidden">
-        <i class="fa-solid fa-circle-check toast-icon"></i>
-        <span id="toastMessage">Lead updated successfully!</span>
+    <div class="stats">
+      <div class="stat"><b>+24 pt</b><span>AI conversion lift</span></div>
+      <div class="stat"><b class="orange">5</b><span>Decision models</span></div>
+      <div class="stat"><b>2</b><span>Role cockpits · RM &amp; Manager</span></div>
+      <div class="stat"><b class="orange">100%</b><span>In-browser fallback</span></div>
     </div>
+  </section>
 
-    <!-- App Script -->
-    <script src="app.js"></script>
+  <section class="features">
+    <div class="feature">
+      <div class="ic">🧠</div>
+      <h3>Behavioral intent engine</h3>
+      <p>GBDT-style propensity scoring over clickstream graphs — the VIEW → CALCULATE_EMI → APPLY path lights a lead up in real time.</p>
+    </div>
+    <div class="feature">
+      <div class="ic">💰</div>
+      <h3>True income assessment</h3>
+      <p>Cash-flow parsing of salaries, EMIs, SIPs and bills computes actual disposable income — not self-declared figures.</p>
+    </div>
+    <div class="feature">
+      <div class="ic">🛡️</div>
+      <h3>Strict risk gate</h3>
+      <p>Default-probability underwriting prunes subprime leads before they ever reach a Relationship Manager's board.</p>
+    </div>
+    <div class="feature">
+      <div class="ic">✨</div>
+      <h3>AI outreach &amp; team cockpit</h3>
+      <p>Hyper-personalized WhatsApp / email / call scripts, A/B lift tracking, and a Branch Manager command center with AI coaching.</p>
+    </div>
+  </section>
+
+  <section class="demo">
+    <h4>Judge / demo access — shared password <code>idbi@2026</code></h4>
+    <span class="cred"><b>Relationship Manager:</b> <code>rm.demo@idbibank.in</code></span>
+    <span class="cred"><b>Branch Manager:</b> <code>manager.demo@idbibank.in</code></span>
+  </section>
+</main>
+
+<footer>
+  Hackathon prototype for <a href="https://hack2skill.com/event/idbinnovate" target="_blank" rel="noopener">IDBI Innovate 2026</a>
+  · Track 02 — Retail Lending Intelligence · Built on FastAPI + Next.js
+</footer>
+
+<script>
+  // Wire every launch button to the single APP_URL constant at the top.
+  document.querySelectorAll("[data-app-link]").forEach((a) => (a.href = APP_URL));
+</script>
+
 </body>
 </html>
