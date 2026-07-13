@@ -1,13 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { Customer, CustomerTwinProfile, LoanType, LOAN_TYPES, ProductTwin } from "@/lib/types";
 import { inr, pct } from "@/lib/format";
 import { Meter } from "./charts/Meter";
 import { TwinRadar } from "./charts/TwinRadar";
 import { ScoreRing } from "./charts/ScoreRing";
-import { Alert, Brain, Check } from "./Icons";
+import { Alert, Brain, Check, List } from "./Icons";
 import { useToast } from "./Toast";
 import { Avatar } from "./Avatar";
 
@@ -18,191 +18,156 @@ const PRODUCT_EMOJI: Record<LoanType, string> = {
   "Mortgage Loan": "🏢",
 };
 
-export function TwinPortfolio({ customers }: { customers: Customer[] }) {
+// The customer is chosen by clicking a lead in the Prioritized Leads list, so
+// this page is a pure controlled detail view (no customer picker of its own).
+export function TwinPortfolio({ customers, customerId }: { customers: Customer[]; customerId: number | null }) {
   const [profile, setProfile] = useState<CustomerTwinProfile | null>(null);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
   const [product, setProduct] = useState<LoanType>("Auto Loan");
   const [loading, setLoading] = useState(false);
   const showToast = useToast();
 
-  const loadProfile = useCallback(
-    async (id: number) => {
-      setSelectedId(id);
-      setLoading(true);
-      try {
-        setProfile(await api.getCustomerTwin(id));
-      } catch {
-        showToast("Error retrieving twin scorecard", true);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [showToast],
-  );
+  // Fall back to the first customer so the page is never blank on first open;
+  // once the RM clicks a lead, the parent drives the selection.
+  const activeId = customerId ?? customers[0]?.id ?? null;
 
   useEffect(() => {
-    if (customers.length > 0 && selectedId === null) {
-      loadProfile(customers[0].id);
-    }
-  }, [customers, selectedId, loadProfile]);
+    if (activeId === null) return;
+    let cancelled = false;
+    setLoading(true);
+    api
+      .getCustomerTwin(activeId)
+      .then((p) => {
+        if (!cancelled) setProfile(p);
+      })
+      .catch(() => {
+        if (!cancelled) showToast("Error retrieving twin scorecard", true);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeId, showToast]);
 
   const twin = profile?.twins[product];
 
   return (
-    <div className="grid h-full min-h-0 grid-rows-[auto_1fr] gap-3 lg:grid-cols-[230px_1fr] lg:grid-rows-[1fr]">
-      {/* customer list — scrolls internally as the portfolio grows */}
-      <div className="card hidden min-h-0 flex-col overflow-hidden p-2.5 lg:flex">
-        <h4 className="shrink-0 px-2 pb-2 pt-1 text-[11px] font-bold uppercase tracking-wider text-ink-muted">
-          Customer profiles
-        </h4>
-        <div className="inner-scroll flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto">
-          {customers.map((c) => (
-            <button
-              key={c.id}
-              onClick={() => loadProfile(c.id)}
-              className={`flex shrink-0 items-center gap-2.5 rounded-2xl px-3 py-2 text-left transition ${
-                selectedId === c.id ? "bg-brand-soft" : "hover:bg-surface-2"
-              }`}
-            >
-              <Avatar name={c.name} size={30} />
-              <span className="min-w-0">
-                <span className={`block truncate text-[13px] font-bold ${selectedId === c.id ? "text-brand-strong" : "text-ink"}`}>
-                  {c.name}
-                </span>
-                <span className="block text-[10px] text-ink-muted">
-                  CIBIL {c.credit_score} · {inr(c.gross_monthly_income)}/mo
-                </span>
-              </span>
-            </button>
-          ))}
+    <div className={`card inner-scroll h-full min-h-0 overflow-y-auto p-4 transition-opacity ${loading ? "opacity-60" : ""}`}>
+      {!profile || !twin ? (
+        <div className="flex h-full flex-col items-center justify-center gap-3 px-6 py-10 text-center">
+          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-soft text-brand-strong">
+            <List width={18} height={18} />
+          </span>
+          <p className="max-w-xs text-xs text-ink-muted">
+            {customers.length === 0
+              ? "No customers to inspect yet."
+              : "Open the Prioritized Leads tab and click a customer to inspect their Behavioral Twin here."}
+          </p>
         </div>
-      </div>
+      ) : (
+        <>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <Avatar name={profile.name} size={44} />
+              <div>
+                <h3 className="text-lg font-extrabold text-ink">{profile.name}</h3>
+                <span className="text-xs text-ink-muted">A/C {profile.account_number} · CIBIL {profile.credit_score}</span>
+              </div>
+            </div>
 
-      {/* mobile: dropdown instead of the sidebar list */}
-      <div className="card shrink-0 p-2.5 lg:hidden">
-        <label htmlFor="twin-customer" className="sr-only">
-          Select customer
-        </label>
-        <select
-          id="twin-customer"
-          value={selectedId ?? ""}
-          onChange={(e) => loadProfile(Number(e.target.value))}
-          className="w-full cursor-pointer rounded-xl border border-hairline bg-surface-2 px-3 py-2 text-[13px] font-bold text-ink outline-none focus:border-brand"
-        >
-          {customers.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name} · CIBIL {c.credit_score}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* detail — its own scroller */}
-      <div className={`card inner-scroll min-h-0 overflow-y-auto p-4 transition-opacity ${loading ? "opacity-60" : ""}`}>
-        {!profile || !twin ? (
-          <p className="py-10 text-center text-xs text-ink-muted">Select a customer to inspect their Behavioral Financial Twin.</p>
-        ) : (
-          <>
-            <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <Avatar name={profile.name} size={44} />
-                <div>
-                  <h3 className="text-lg font-extrabold text-ink">{profile.name}</h3>
-                  <span className="text-xs text-ink-muted">A/C {profile.account_number} · CIBIL {profile.credit_score}</span>
+            {/* headline verdicts together: loan readiness + risk tier */}
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2.5 rounded-2xl border border-hairline bg-surface-2 py-1.5 pl-2 pr-3.5">
+                <ScoreRing value={twin.composite_lead_score * 100} size={40} label="Loan readiness index" />
+                <div className="leading-tight">
+                  <span className="block text-[10px] font-extrabold uppercase tracking-wide text-ink-muted">Loan Readiness</span>
+                  <span className="block text-[10px] text-ink-muted">{product} outreach</span>
                 </div>
               </div>
               <RiskBadge tier={twin.risk_evaluation.risk_tier} />
             </div>
+          </div>
 
-            <div className="mb-3 flex flex-wrap items-center gap-1.5">
-              <span className="text-xs font-semibold text-ink-secondary">Inspect product twin:</span>
-              {LOAN_TYPES.map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setProduct(p)}
-                  className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${
-                    product === p
-                      ? "border-brand bg-brand-soft text-brand-strong"
-                      : "border-hairline bg-surface-2 text-ink-secondary hover:border-brand/40"
-                  }`}
-                >
-                  {PRODUCT_EMOJI[p]} {p}
-                </button>
-              ))}
+          <div className="mb-3 flex flex-wrap items-center gap-1.5">
+            <span className="text-xs font-semibold text-ink-secondary">Inspect product twin:</span>
+            {LOAN_TYPES.map((p) => (
+              <button
+                key={p}
+                onClick={() => setProduct(p)}
+                className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${
+                  product === p
+                    ? "border-brand bg-brand-soft text-brand-strong"
+                    : "border-hairline bg-surface-2 text-ink-secondary hover:border-brand/40"
+                }`}
+              >
+                {PRODUCT_EMOJI[p]} {p}
+              </button>
+            ))}
+          </div>
+
+          <div className="grid gap-4 xl:grid-cols-[280px_1fr]">
+            {/* behavioral fingerprint (LRI now headlines next to the risk badge) */}
+            <div className="flex flex-col items-center justify-center">
+              <TwinRadar twin={twin.financial_twin} />
             </div>
 
-            <div className="grid gap-4 xl:grid-cols-[280px_1fr]">
-              {/* fingerprint + LRI hero */}
-              <div className="flex flex-col items-center gap-3">
-                <TwinRadar twin={twin.financial_twin} />
-                <div className="flex items-center gap-3 rounded-2xl border border-hairline bg-surface-2 px-4 py-3">
-                  <ScoreRing value={twin.composite_lead_score * 100} size={56} label="Loan readiness index" />
-                  <div>
-                    <span className="block text-[11px] font-extrabold uppercase tracking-wide text-ink-muted">
-                      Loan Readiness
-                    </span>
-                    <span className="block text-[11px] text-ink-muted">
-                      Index for {product.toLowerCase()} outreach
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* six component meters (exact values; radar is redundant) */}
-              <div className="grid content-start gap-x-6 gap-y-4 sm:grid-cols-2">
-                <Meter label="Repayment capacity" value={twin.repayment_capacity_score} display={pct(twin.repayment_capacity_score, 0)} />
-                <Meter label="Intent score (GBDT)" value={twin.intent_score} display={`${Math.round(twin.intent_score)}/100`} />
-                <Meter label="Financial discipline" value={twin.discipline_score} display={`${Math.round(twin.discipline_score)}/100`} />
-                <Meter label="Spending stability" value={twin.spending_stability_score} display={`${Math.round(twin.spending_stability_score)}/100`} />
-                <Meter label="Income confidence" value={twin.income_confidence_score} display={`${Math.round(twin.income_confidence_score)}/100`} />
-                <Meter label="Offer acceptance" value={twin.offer_acceptance_probability * 100} display={pct(twin.offer_acceptance_probability * 100, 0)} tone="accent" />
-              </div>
+            {/* six component meters (exact values; radar is redundant) —
+                rows distribute evenly over the column's full height so they
+                track the radar instead of packing at the top */}
+            <div className="grid content-evenly gap-x-6 gap-y-4 sm:grid-cols-2">
+              <Meter label="Repayment capacity" value={twin.repayment_capacity_score} display={pct(twin.repayment_capacity_score, 0)} />
+              <Meter label="Intent score (GBDT)" value={twin.intent_score} display={`${Math.round(twin.intent_score)}/100`} />
+              <Meter label="Financial discipline" value={twin.discipline_score} display={`${Math.round(twin.discipline_score)}/100`} />
+              <Meter label="Spending stability" value={twin.spending_stability_score} display={`${Math.round(twin.spending_stability_score)}/100`} />
+              <Meter label="Income confidence" value={twin.income_confidence_score} display={`${Math.round(twin.income_confidence_score)}/100`} />
+              <Meter label="Offer acceptance" value={twin.offer_acceptance_probability * 100} display={pct(twin.offer_acceptance_probability * 100, 0)} tone="accent" />
             </div>
+          </div>
 
-            {/* narrative */}
-            <div className="mt-4 rounded-xl border border-hairline bg-surface-2 p-3.5">
-              <h4 className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink-muted">
-                <Brain width={14} height={14} className="text-brand" /> Explainable AI narrative
-              </h4>
-              <p className="text-[13px] leading-relaxed text-ink-secondary">{buildNarrative(twin, product)}</p>
+          {/* narrative */}
+          <div className="mt-4 rounded-xl border border-hairline bg-surface-2 p-3.5">
+            <h4 className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink-muted">
+              <Brain width={14} height={14} className="text-brand" /> Explainable AI narrative
+            </h4>
+            <p className="text-[13px] leading-relaxed text-ink-secondary">{buildNarrative(twin, product)}</p>
 
-              {twin.reasons.length > 0 && (
-                <ul className="mt-3 flex flex-col gap-1.5 border-t border-dashed border-hairline pt-3">
-                  {twin.reasons.map((reason, i) => {
-                    const warn = /irregular|bounced|tight/i.test(reason);
-                    return (
-                      <li key={i} className="flex items-start gap-2 text-xs text-ink-secondary">
-                        {warn ? (
-                          <Alert width={13} height={13} className="mt-px shrink-0 text-serious" />
-                        ) : (
-                          <Check width={13} height={13} className="mt-px shrink-0 text-good-text" />
-                        )}
-                        {reason}
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
+            {twin.reasons.length > 0 && (
+              <ul className="mt-3 flex flex-col gap-1.5 border-t border-dashed border-hairline pt-3">
+                {twin.reasons.map((reason, i) => {
+                  const warn = /irregular|bounced|tight/i.test(reason);
+                  return (
+                    <li key={i} className="flex items-start gap-2 text-xs text-ink-secondary">
+                      {warn ? (
+                        <Alert width={13} height={13} className="mt-px shrink-0 text-serious" />
+                      ) : (
+                        <Check width={13} height={13} className="mt-px shrink-0 text-good-text" />
+                      )}
+                      {reason}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+
+          {/* underwriting limits */}
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-xl border border-hairline bg-surface-2 px-4 py-3">
+              <span className="block text-[10.5px] font-semibold uppercase tracking-wide text-ink-muted">
+                Eligible limit · {product}
+              </span>
+              <span className="text-lg font-extrabold text-brand">{inr(twin.risk_evaluation.max_eligible_limit)}</span>
             </div>
-
-            {/* underwriting limits */}
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl border border-hairline bg-surface-2 px-4 py-3">
-                <span className="block text-[10.5px] font-semibold uppercase tracking-wide text-ink-muted">
-                  Eligible limit · {product}
-                </span>
-                <span className="text-lg font-extrabold text-brand">{inr(twin.risk_evaluation.max_eligible_limit)}</span>
-              </div>
-              <div className="rounded-xl border border-hairline bg-surface-2 px-4 py-3">
-                <span className="block text-[10.5px] font-semibold uppercase tracking-wide text-ink-muted">
-                  Debt headroom (FOIR)
-                </span>
-                <span className="text-lg font-extrabold text-ink">{(twin.risk_evaluation.foir_limit * 100).toFixed(0)}% of disposable</span>
-              </div>
+            <div className="rounded-xl border border-hairline bg-surface-2 px-4 py-3">
+              <span className="block text-[10.5px] font-semibold uppercase tracking-wide text-ink-muted">
+                Debt headroom (FOIR)
+              </span>
+              <span className="text-lg font-extrabold text-ink">{(twin.risk_evaluation.foir_limit * 100).toFixed(0)}% of disposable</span>
             </div>
-          </>
-        )}
-      </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

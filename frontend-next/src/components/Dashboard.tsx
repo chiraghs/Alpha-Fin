@@ -39,6 +39,7 @@ export function Dashboard() {
   // the LRI floor (or uses the filters) as the portfolio grows.
   const [threshold, setThreshold] = useState(0.35);
   const [tab, setTab] = useState<RMTab>("leads");
+  const [twinCustomerId, setTwinCustomerId] = useState<number | null>(null);
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>("sim");
   const [streamOpen, setStreamOpen] = useState(false);
   const [streamSeen, setStreamSeen] = useState(0);
@@ -197,6 +198,13 @@ export function Dashboard() {
     [logActivity, showToast, refreshLeads],
   );
 
+  // Clicking a lead's customer jumps to the Twin Portfolio focused on them.
+  const handleInspectTwin = useCallback((customerId: number) => {
+    setTwinCustomerId(customerId);
+    setTab("portfolio");
+    setMobilePanel("rm");
+  }, []);
+
   const handleReset = useCallback(async () => {
     setResetting(true);
     try {
@@ -285,12 +293,13 @@ export function Dashboard() {
                 threshold={threshold}
                 onThreshold={setThreshold}
                 onOutreach={setOutreachLead}
+                onInspect={handleInspectTwin}
                 flashIds={flashIds}
               />
             </div>
           ) : (
             <div className="min-h-0 flex-1 overflow-hidden">
-              <TwinPortfolio customers={customers} />
+              <TwinPortfolio customers={customers} customerId={twinCustomerId} />
             </div>
           )}
         </div>
