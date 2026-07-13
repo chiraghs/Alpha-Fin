@@ -11,6 +11,7 @@ import {
   Customer,
   Lead,
   LeadStatus,
+  LoanType,
   PerformanceStats,
 } from "@/lib/types";
 import { ActivityFeed } from "./ActivityFeed";
@@ -40,6 +41,7 @@ export function Dashboard() {
   const [threshold, setThreshold] = useState(0.35);
   const [tab, setTab] = useState<RMTab>("leads");
   const [twinCustomerId, setTwinCustomerId] = useState<number | null>(null);
+  const [twinProduct, setTwinProduct] = useState<LoanType>("Auto Loan");
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>("sim");
   const [streamOpen, setStreamOpen] = useState(false);
   const [streamSeen, setStreamSeen] = useState(0);
@@ -198,9 +200,11 @@ export function Dashboard() {
     [logActivity, showToast, refreshLeads],
   );
 
-  // Clicking a lead's customer jumps to the Twin Portfolio focused on them.
-  const handleInspectTwin = useCallback((customerId: number) => {
+  // Clicking a lead jumps to the Twin Portfolio focused on that customer AND
+  // the lead's product, so the readiness there matches the lead's LRI.
+  const handleInspectTwin = useCallback((customerId: number, loanType: LoanType) => {
     setTwinCustomerId(customerId);
+    setTwinProduct(loanType);
     setTab("portfolio");
     setMobilePanel("rm");
   }, []);
@@ -299,7 +303,7 @@ export function Dashboard() {
             </div>
           ) : (
             <div className="min-h-0 flex-1 overflow-hidden">
-              <TwinPortfolio customers={customers} customerId={twinCustomerId} />
+              <TwinPortfolio customers={customers} customerId={twinCustomerId} product={twinProduct} onProduct={setTwinProduct} />
             </div>
           )}
         </div>
