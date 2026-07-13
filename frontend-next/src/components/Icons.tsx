@@ -225,6 +225,13 @@ export const PhoneCall = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+export const Search = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <circle cx="11" cy="11" r="7" />
+    <path d="m20 20-3.8-3.8" />
+  </svg>
+);
+
 export const Target = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <circle cx="12" cy="12" r="9" />

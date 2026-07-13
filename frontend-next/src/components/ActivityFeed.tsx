@@ -42,7 +42,7 @@ export function ActivityFeed({
           Quiet for now — trigger a customer action in the simulator and watch the decision pipeline light up here.
         </p>
       ) : (
-        <ul className={`relative flex flex-col gap-0 overflow-y-auto pr-1 ${expanded ? "max-h-[65vh]" : "max-h-60"}`}>
+        <ul className={`inner-scroll relative flex flex-col gap-0 overflow-y-auto pr-1 ${expanded ? "max-h-[65vh]" : "max-h-60"}`}>
           {/* timeline spine */}
           <span aria-hidden className="absolute bottom-1 left-[7px] top-1 w-px bg-hairline" />
           {items.map((item) => (

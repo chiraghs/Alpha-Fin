@@ -49,27 +49,27 @@ export function TwinPortfolio({ customers }: { customers: Customer[] }) {
   const twin = profile?.twins[product];
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[240px_1fr]">
-      {/* customer list */}
-      <div className="card h-fit p-3">
-        <h4 className="px-2 pb-2 pt-1 text-[11px] font-bold uppercase tracking-wider text-ink-muted">
+    <div className="grid h-full min-h-0 grid-rows-[auto_1fr] gap-3 lg:grid-cols-[230px_1fr] lg:grid-rows-[1fr]">
+      {/* customer list — scrolls internally as the portfolio grows */}
+      <div className="card hidden min-h-0 flex-col overflow-hidden p-2.5 lg:flex">
+        <h4 className="shrink-0 px-2 pb-2 pt-1 text-[11px] font-bold uppercase tracking-wider text-ink-muted">
           Customer profiles
         </h4>
-        <div className="flex flex-col gap-1">
+        <div className="inner-scroll flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto">
           {customers.map((c) => (
             <button
               key={c.id}
               onClick={() => loadProfile(c.id)}
-              className={`flex items-center gap-2.5 rounded-2xl px-3 py-2.5 text-left transition ${
+              className={`flex shrink-0 items-center gap-2.5 rounded-2xl px-3 py-2 text-left transition ${
                 selectedId === c.id ? "bg-brand-soft" : "hover:bg-surface-2"
               }`}
             >
-              <Avatar name={c.name} size={32} />
+              <Avatar name={c.name} size={30} />
               <span className="min-w-0">
-                <span className={`block truncate text-sm font-bold ${selectedId === c.id ? "text-brand-strong" : "text-ink"}`}>
+                <span className={`block truncate text-[13px] font-bold ${selectedId === c.id ? "text-brand-strong" : "text-ink"}`}>
                   {c.name}
                 </span>
-                <span className="block text-[10.5px] text-ink-muted">
+                <span className="block text-[10px] text-ink-muted">
                   CIBIL {c.credit_score} · {inr(c.gross_monthly_income)}/mo
                 </span>
               </span>
@@ -78,13 +78,32 @@ export function TwinPortfolio({ customers }: { customers: Customer[] }) {
         </div>
       </div>
 
-      {/* detail */}
-      <div className={`card p-5 transition-opacity ${loading ? "opacity-60" : ""}`}>
+      {/* mobile: dropdown instead of the sidebar list */}
+      <div className="card shrink-0 p-2.5 lg:hidden">
+        <label htmlFor="twin-customer" className="sr-only">
+          Select customer
+        </label>
+        <select
+          id="twin-customer"
+          value={selectedId ?? ""}
+          onChange={(e) => loadProfile(Number(e.target.value))}
+          className="w-full cursor-pointer rounded-xl border border-hairline bg-surface-2 px-3 py-2 text-[13px] font-bold text-ink outline-none focus:border-brand"
+        >
+          {customers.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name} · CIBIL {c.credit_score}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* detail — its own scroller */}
+      <div className={`card inner-scroll min-h-0 overflow-y-auto p-4 transition-opacity ${loading ? "opacity-60" : ""}`}>
         {!profile || !twin ? (
           <p className="py-10 text-center text-xs text-ink-muted">Select a customer to inspect their Behavioral Financial Twin.</p>
         ) : (
           <>
-            <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+            <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
               <div className="flex items-center gap-3">
                 <Avatar name={profile.name} size={44} />
                 <div>
@@ -95,7 +114,7 @@ export function TwinPortfolio({ customers }: { customers: Customer[] }) {
               <RiskBadge tier={twin.risk_evaluation.risk_tier} />
             </div>
 
-            <div className="mb-5 flex flex-wrap items-center gap-2">
+            <div className="mb-3 flex flex-wrap items-center gap-1.5">
               <span className="text-xs font-semibold text-ink-secondary">Inspect product twin:</span>
               {LOAN_TYPES.map((p) => (
                 <button
@@ -112,7 +131,7 @@ export function TwinPortfolio({ customers }: { customers: Customer[] }) {
               ))}
             </div>
 
-            <div className="grid gap-6 xl:grid-cols-[300px_1fr]">
+            <div className="grid gap-4 xl:grid-cols-[280px_1fr]">
               {/* fingerprint + LRI hero */}
               <div className="flex flex-col items-center gap-3">
                 <TwinRadar twin={twin.financial_twin} />
@@ -141,7 +160,7 @@ export function TwinPortfolio({ customers }: { customers: Customer[] }) {
             </div>
 
             {/* narrative */}
-            <div className="mt-6 rounded-xl border border-hairline bg-surface-2 p-4">
+            <div className="mt-4 rounded-xl border border-hairline bg-surface-2 p-3.5">
               <h4 className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink-muted">
                 <Brain width={14} height={14} className="text-brand" /> Explainable AI narrative
               </h4>
@@ -167,7 +186,7 @@ export function TwinPortfolio({ customers }: { customers: Customer[] }) {
             </div>
 
             {/* underwriting limits */}
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
               <div className="rounded-xl border border-hairline bg-surface-2 px-4 py-3">
                 <span className="block text-[10.5px] font-semibold uppercase tracking-wide text-ink-muted">
                   Eligible limit · {product}

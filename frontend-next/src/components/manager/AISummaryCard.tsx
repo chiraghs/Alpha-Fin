@@ -7,7 +7,7 @@ import { Brain, Trophy, Alert, Sparkles } from "../Icons";
 
 export function AISummaryCard({ summary, c }: { summary: string; c: TeamConsolidated }) {
   return (
-    <div className="card relative overflow-hidden p-5">
+    <div className="card relative shrink-0 overflow-hidden p-4">
       <div className="mb-3 flex items-center gap-2">
         <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-soft text-brand-strong">
           <Brain width={16} height={16} />
