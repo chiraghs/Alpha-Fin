@@ -186,8 +186,8 @@ graph LR
 graph TD
     %% REPOSITORY 3: EXPOSED CLIENT APPLICATION (Vertical Symmetrical Pyramid - Compact)
     subgraph Repo3 ["Repository 3: Exposed Client Application"]
-        User["RM"] --> NGINX["NGINX Proxy"]
-        BM["BM"] --> NGINX
+        User["Relationship Manager"] --> NGINX["NGINX Proxy"]
+        BM["Bank Manager"] --> NGINX
         NGINX --> Limits["Rate Limiter"]
         Limits --> LB["Load Balancer"]
         LB --> AppServer["FastAPI Server"]
