@@ -179,7 +179,7 @@ graph LR
         Conversion --> Risk
         History --> Risk
         
-        Risk -->|Write Scores & Risk Status| RDS2[(AWS RDS Model Database)]
+        Risk -->|Write Scores & Risk Status| RDS2[("AWS RDS Database (Postgres)")]
     end
 
     %% Horizontal Side-by-Side Data Flow (Single entry point into Repo 2)
@@ -214,7 +214,7 @@ graph TD
         LB --> AppServer["FastAPI Server"]
         
         %% Database lookup path (vertical downwards)
-        RDS3[(RDS DB)] --> Redis["Redis Cache"]
+        RDS3[("AWS RDS Database (Postgres)")] --> Redis["Redis Cache"]
         Redis --> AppServer
         
         %% FastAPI App Server branches out directly to Client presentation views
