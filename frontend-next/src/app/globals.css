@@ -182,10 +182,34 @@ body {
   border-color: rgba(255, 255, 255, 0.18);
 }
 
-/* recessive scrollbars */
+/* ---------- scrollbars ----------
+   Inner scrollers (phone app, stream popup, tables) and the whole mobile
+   view scroll without any visible bar; the main page gets a hairline
+   brand-green bar on desktop. */
 * {
-  scrollbar-width: thin;
-  scrollbar-color: var(--ink-muted) transparent;
+  scrollbar-width: none;
+}
+*::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+@media (min-width: 1024px) {
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--brand-green) transparent;
+  }
+  html::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  html::-webkit-scrollbar-thumb {
+    background: var(--brand-green);
+    border-radius: 999px;
+  }
+  html::-webkit-scrollbar-track {
+    background: transparent;
+  }
 }
 
 /* ---------- motion ---------- */

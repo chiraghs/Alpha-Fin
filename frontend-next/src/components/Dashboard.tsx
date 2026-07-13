@@ -17,7 +17,7 @@ import { ActivityFeed } from "./ActivityFeed";
 import { CampaignLift } from "./CampaignLift";
 import { Header } from "./Header";
 import { InsightHero } from "./InsightHero";
-import { Chart, List, Phone, Users } from "./Icons";
+import { Bolt, Chart, List, Phone, Users } from "./Icons";
 import { LeadsBoard } from "./LeadsBoard";
 import { OutreachModal } from "./OutreachModal";
 import { PhoneSimulator, SimulatorActions } from "./PhoneSimulator";
@@ -38,6 +38,8 @@ export function Dashboard() {
   const [threshold, setThreshold] = useState(0.7);
   const [tab, setTab] = useState<RMTab>("leads");
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>("sim");
+  const [streamOpen, setStreamOpen] = useState(false);
+  const [streamSeen, setStreamSeen] = useState(0);
   const [outreachLead, setOutreachLead] = useState<Lead | null>(null);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [flashIds, setFlashIds] = useState<Set<number>>(new Set());
@@ -117,6 +119,14 @@ export function Dashboard() {
     const interval = setInterval(refreshLeads, 2500);
     return () => clearInterval(interval);
   }, [refreshLeads]);
+
+  // Escape closes the live-stream popup
+  useEffect(() => {
+    if (!streamOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setStreamOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [streamOpen]);
 
   // ---------- simulator actions ----------
 
@@ -223,15 +233,37 @@ export function Dashboard() {
       <Header mode={mode} onReset={handleReset} resetting={resetting} session={session} onLogout={handleLogout} />
 
       <main className="mx-auto grid max-w-[1700px] gap-5 px-4 pb-24 pt-5 sm:px-6 lg:grid-cols-[minmax(340px,400px)_1fr] lg:pb-5">
-        {/* LEFT: customer portal simulator (mobile: shown on the "sim" panel) */}
-        <div className={`${mobilePanel === "sim" ? "flex" : "hidden"} rise-in flex-col gap-4 lg:flex`}>
+        {/* LEFT: customer portal simulator — sticky and viewport-fitted on desktop;
+            the phone flexes and its app content scrolls inside */}
+        <div
+          className={`${mobilePanel === "sim" ? "flex" : "hidden"} rise-in flex-col gap-4 lg:sticky lg:top-[76px] lg:flex lg:h-[calc(100dvh-96px)] lg:self-start lg:overflow-hidden`}
+        >
           <SectionTitle
             Icon={Phone}
             title="Customer Portal Simulator"
             sub="Act on behalf of a customer and fire real-time behavioral events"
           />
           <PhoneSimulator customers={customers} selected={selected} onSelect={setSelectedId} actions={actions} />
-          <ActivityFeed items={activity} />
+
+          {/* live pipeline stream — compact trigger, feed opens as a popup */}
+          <button
+            onClick={() => {
+              setStreamOpen(true);
+              setStreamSeen(activity.length);
+            }}
+            className="card lift flex shrink-0 items-center gap-2.5 px-4 py-2.5 text-left"
+          >
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent-strong">
+              <Bolt width={13} height={13} />
+            </span>
+            <span className="flex-1 text-xs font-extrabold text-ink">Live pipeline stream</span>
+            {activity.length > streamSeen && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[10px] font-extrabold text-white">
+                {activity.length - streamSeen}
+              </span>
+            )}
+            <span className="pulse-dot h-2 w-2 rounded-full bg-brand" />
+          </button>
         </div>
 
         {/* RIGHT: RM command center (mobile: shown on the "rm" panel) */}
@@ -248,7 +280,7 @@ export function Dashboard() {
           </div>
 
           {/* tabs */}
-          <div className="rise-in-2 flex gap-1 rounded-2xl bg-surface-2 p-1">
+          <div className="rise-in-2 flex gap-1 rounded-2xl bg-surface-3 p-1">
             <TabButton active={tab === "leads"} onClick={() => setTab("leads")} Icon={List} label="Prioritized Leads & Outreach" />
             <TabButton active={tab === "portfolio"} onClick={() => setTab("portfolio")} Icon={Users} label="Customer Twin Portfolio" />
           </div>
@@ -269,10 +301,6 @@ export function Dashboard() {
           )}
         </div>
       </main>
-
-      <footer className="hidden border-t border-hairline py-4 text-center text-[11px] text-ink-muted lg:block">
-        Prospect Assist AI · IDBI Innovate 2026 — Track 02 prototype · Behavioral Credit & Hyper-Targeted Lead Engine
-      </footer>
 
       {/* mobile panel switcher */}
       <nav
@@ -298,6 +326,20 @@ export function Dashboard() {
       </nav>
 
       {outreachLead && <OutreachModal lead={outreachLead} onClose={() => setOutreachLead(null)} onOutcome={handleOutcome} />}
+
+      {streamOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm"
+          onClick={() => setStreamOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Live pipeline stream"
+        >
+          <div className="rise-in w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <ActivityFeed items={activity} expanded onClose={() => setStreamOpen(false)} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

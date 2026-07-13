@@ -1,7 +1,7 @@
 "use client";
 
 import { ActivityItem } from "@/lib/types";
-import { Bolt } from "./Icons";
+import { Bolt, X } from "./Icons";
 
 const KIND_COLOR: Record<ActivityItem["kind"], string> = {
   click: "var(--brand-green)",
@@ -10,7 +10,15 @@ const KIND_COLOR: Record<ActivityItem["kind"], string> = {
   outcome: "var(--status-good)",
 };
 
-export function ActivityFeed({ items }: { items: ActivityItem[] }) {
+export function ActivityFeed({
+  items,
+  expanded = false,
+  onClose,
+}: {
+  items: ActivityItem[];
+  expanded?: boolean;
+  onClose?: () => void;
+}) {
   return (
     <div className="card flex min-h-0 flex-1 flex-col p-4">
       <h3 className="mb-3 flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-ink-muted">
@@ -19,13 +27,22 @@ export function ActivityFeed({ items }: { items: ActivityItem[] }) {
         </span>
         Live pipeline stream
         <span className="pulse-dot ml-auto h-1.5 w-1.5 rounded-full bg-brand" />
+        {onClose && (
+          <button
+            onClick={onClose}
+            aria-label="Close stream"
+            className="rounded-full p-1 text-ink-muted transition hover:bg-surface-2 hover:text-ink"
+          >
+            <X width={13} height={13} />
+          </button>
+        )}
       </h3>
       {items.length === 0 ? (
         <p className="text-xs text-ink-muted">
-          Quiet for now — trigger a customer action above and watch the decision pipeline light up here.
+          Quiet for now — trigger a customer action in the simulator and watch the decision pipeline light up here.
         </p>
       ) : (
-        <ul className="relative flex max-h-60 flex-col gap-0 overflow-y-auto pr-1">
+        <ul className={`relative flex flex-col gap-0 overflow-y-auto pr-1 ${expanded ? "max-h-[65vh]" : "max-h-60"}`}>
           {/* timeline spine */}
           <span aria-hidden className="absolute bottom-1 left-[7px] top-1 w-px bg-hairline" />
           {items.map((item) => (

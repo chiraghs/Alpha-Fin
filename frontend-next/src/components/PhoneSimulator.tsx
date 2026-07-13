@@ -81,46 +81,58 @@ export function PhoneSimulator({
   };
 
   return (
-    <section className="flex flex-col gap-4">
-      {/* customer switcher */}
-      <div className="card p-2">
-        <div className="flex flex-col gap-1">
-          {customers.map((c) => (
-            <button
-              key={c.id}
-              onClick={() => onSelect(c.id)}
-              className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition ${
-                selected?.id === c.id ? "bg-brand-soft" : "hover:bg-surface-2"
-              }`}
+    <section className="flex min-h-0 flex-1 flex-col gap-4">
+      {/* customer switcher — dropdown: an RM book can hold hundreds of customers */}
+      <div className="card shrink-0 p-3.5">
+        <label htmlFor="sim-customer" className="mb-1.5 block text-[10px] font-extrabold uppercase tracking-wider text-ink-muted">
+          Acting as customer
+        </label>
+        <div className="flex items-center gap-2.5">
+          {selected && <Avatar name={selected.name} size={36} />}
+          <div className="relative min-w-0 flex-1">
+            <select
+              id="sim-customer"
+              value={selected?.id ?? ""}
+              onChange={(e) => onSelect(Number(e.target.value))}
+              className="w-full appearance-none rounded-xl border border-hairline bg-surface-2 py-2.5 pl-3 pr-9 text-sm font-bold text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-(--ring)"
             >
-              <Avatar name={c.name} size={34} />
-              <span className="min-w-0 flex-1">
-                <span className={`block truncate text-sm font-bold ${selected?.id === c.id ? "text-brand-strong" : "text-ink"}`}>
-                  {c.name}
-                </span>
-                <span className="block text-[10.5px] text-ink-muted">
-                  CIBIL {c.credit_score} · {inrCompact(c.gross_monthly_income)}/mo
-                </span>
-              </span>
-              {selected?.id === c.id && (
-                <span className="rounded-full bg-brand px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wide text-white">
-                  Acting as
-                </span>
-              )}
-            </button>
-          ))}
+              {customers.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name} · {c.account_number} · CIBIL {c.credit_score}
+                </option>
+              ))}
+            </select>
+            <Chevron
+              width={13}
+              height={13}
+              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rotate-90 text-ink-muted"
+            />
+          </div>
         </div>
+        {selected && (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[10px] font-bold text-brand-strong">
+              {inrCompact(selected.gross_monthly_income)}/mo income
+            </span>
+            <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[10px] font-bold text-ink-secondary">
+              CIBIL {selected.credit_score}
+            </span>
+            <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[10px] font-bold text-ink-secondary">
+              {selected.account_number}
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* device */}
-      <div className="mx-auto w-full max-w-[350px]">
-        <div className="rounded-[2.8rem] bg-[#0b0f0e] p-[9px] shadow-[0_30px_60px_-20px_rgba(1,40,33,0.5)]">
-          <div className="relative overflow-hidden rounded-[2.3rem] bg-surface-1">
+      {/* device — flexes to the remaining column height; app content scrolls inside */}
+      <div className="mx-auto flex min-h-0 w-full max-w-[350px] flex-1">
+        <div className="flex w-full flex-col rounded-[2.8rem] dark:bg-[#1a2d26] bg-[#0b0f0e] p-[9px] shadow-[0_30px_60px_-20px_rgba(1,40,33,0.5)]">
+          <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-[2.3rem] bg-surface-1">
             {/* dynamic island */}
-            <div className="absolute left-1/2 top-2 z-10 h-[22px] w-[86px] -translate-x-1/2 rounded-full bg-[#0b0f0e]" />
+            <div className="absolute left-1/2 top-2 z-10 h-[22px] w-[86px] -translate-x-1/2 rounded-full dark:bg-[#1a2d26] bg-[#0b0f0e]" />
 
             {/* status bar */}
-            <div className="flex items-center justify-between px-7 pb-1 pt-3 text-[11px] font-bold text-ink-secondary">
+            <div className="flex shrink-0 items-center justify-between px-7 pb-1 pt-3 text-[11px] font-bold text-ink-secondary">
               <span className="tabular-nums">{clock}</span>
               <span className="flex items-center gap-1.5">
                 <Wifi width={12} height={12} />
@@ -128,7 +140,7 @@ export function PhoneSimulator({
               </span>
             </div>
 
-            <div className="flex max-h-[600px] flex-col gap-4 overflow-y-auto px-4 pb-16 pt-2">
+            <div className="flex max-h-[600px] min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-16 pt-2 lg:max-h-none">
               {/* greeting */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
