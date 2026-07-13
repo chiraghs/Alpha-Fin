@@ -119,9 +119,26 @@ graph LR
     
     %% UI Presentation
     RDS --> UI
-    RDS --> ABDashboard
+    RDS --> ABDDashboard
     RDS --> TwinAnalyzer
     RDS --> Outreach
+
+    %% Beautiful Professional Slate & Pastel Styling Definitions
+    classDef source fill:#f8fafc,stroke:#64748b,stroke-width:1.5px,color:#0f172a;
+    classDef server fill:#ecfeff,stroke:#0891b2,stroke-width:1.5px,color:#083344,font-weight:bold;
+    classDef database fill:#f0f9ff,stroke:#0284c7,stroke-width:1.5px,color:#0c4a6e;
+    classDef model fill:#f5f3ff,stroke:#7c3aed,stroke-width:1.5px,color:#2e1065;
+    classDef filter fill:#fff7ed,stroke:#ea580c,stroke-width:1.5px,color:#7c2d12,font-weight:bold;
+    classDef block fill:#fef2f2,stroke:#ef4444,stroke-width:1.5px,color:#7f1d1d;
+    classDef presentation fill:#fdf2f8,stroke:#db2777,stroke-width:1.5px,color:#500724;
+
+    class CB,IB,UPI,Bureau,CRM source;
+    class FE,LRI server;
+    class Lake,RDS database;
+    class Income,Graph,GBDT,Velocity,LifeEvents,RiskModel,Conversion,History model;
+    class Pruning filter;
+    class Trash block;
+    class UI,ABDashboard,TwinAnalyzer,Outreach presentation;
 ```
 
 ## 🌐 Enterprise Distributed Microservices Architecture (Post-Submission Roadmap)
@@ -167,45 +184,65 @@ graph LR
 
     %% Horizontal Side-by-Side Data Flow (Single entry point into Repo 2)
     Lake -->|Asynchronous Event Inflow| FE
+
+    %% Beautiful Professional Slate & Pastel Styling Definitions
+    classDef source fill:#f8fafc,stroke:#64748b,stroke-width:1.5px,color:#0f172a;
+    classDef server fill:#ecfeff,stroke:#0891b2,stroke-width:1.5px,color:#083344,font-weight:bold;
+    classDef database fill:#f0f9ff,stroke:#0284c7,stroke-width:1.5px,color:#0c4a6e;
+    classDef model fill:#f5f3ff,stroke:#7c3aed,stroke-width:1.5px,color:#2e1065;
+    classDef filter fill:#fff7ed,stroke:#ea580c,stroke-width:1.5px,color:#7c2d12,font-weight:bold;
+    classDef gateway fill:#f1f5f9,stroke:#64748b,stroke-width:1.5px,color:#0f172a;
+
+    class Feeds source;
+    class Ingest gateway;
+    class Lake,RDS2 database;
+    class FE server;
+    class Income,Intent,LifeEvents,RiskModel,Conversion,History model;
+    class Risk filter;
 ```
 
 ### Prospect AI Application (Prospect Assist AI: Behavioral Credit & Hyper-Targeted Lead Engine)
 
 ```mermaid
 graph TD
-    %% REPOSITORY 3: EXPOSED CLIENT APPLICATION (Top-to-Bottom Gateway & Presentation)
+    %% REPOSITORY 3: EXPOSED CLIENT APPLICATION (Vertical Symmetrical Pyramid - Compact)
     subgraph Repo3 ["Repository 3: Exposed Client Application"]
-        User["Relationship Manager (RM)"] --> NGINX["NGINX Reverse Proxy"]
-        NGINX --> Limits["Rate Limiter & Idempotency Filter"]
+        User["RM"] --> NGINX["NGINX Proxy"]
+        BM["BM"] --> NGINX
+        NGINX --> Limits["Rate Limiter"]
         Limits --> LB["Load Balancer"]
-        LB --> AppServer["FastAPI Application Server"]
+        LB --> AppServer["FastAPI Server"]
         
         %% Database lookup path (vertical downwards)
-        RDS3[(AWS RDS App Database)] --> Redis["Redis Score Cache"]
+        RDS3[(RDS DB)] --> Redis["Redis Cache"]
         Redis --> AppServer
         
         %% FastAPI App Server branches out directly to Client presentation views
-        AppServer --> UI["Relationship Manager Dashboard UI"]
-        AppServer --> ABDDashboard["Campaign Efficacy & Conversion Lift"]
-        AppServer --> TwinAnalyzer["Behavioral Twin Portfolio Drilldown"]
-        AppServer --> Outreach["AI Personalized Outreach Generator"]
+        AppServer --> UI["RM Dashboard"]
+        AppServer --> ABDDashboard["Campaign Lift"]
+        AppServer --> TwinAnalyzer["Twin Portfolio"]
+        AppServer --> Outreach["AI Outreach"]
+        
+        %% Keep ABDDashboard to the left side of the presentation layer
+        NGINX ~~~ ABDDashboard
         
         %% Flow after client services
-        UI --> Portfolio["Portfolio & Leaderboard Analyzer"]
+        UI --> Portfolio["Portfolio Analyzer"]
         TwinAnalyzer --> Portfolio
         Outreach --> Portfolio
         
-        Portfolio --> Campaign["Outreach Campaign Manager"]
-        Campaign --> SQS["AWS SQS Notification Queue"]
+        Portfolio --> Campaign["Campaign Manager"]
+        Campaign --> SQS["SQS Queue"]
         
-        SQS --> Worker["Notification Dispatch Worker"]
+        SQS --> Worker["Dispatch Worker"]
         
-        %% Dispatch branches grouped in Borrower Lead
+        %% Dispatch branches grouped in Borrower Lead (Horizontal layout inside vertical stack)
         subgraph Borrower ["Borrower Lead"]
-            Email["Email Dispatch"]
-            SMS["SMS Gateway"]
+            direction LR
+            Email["Email"]
+            SMS["SMS"]
             Phone["Phone AI"]
-            WhatsApp["WhatsApp Messaging"]
+            WhatsApp["WhatsApp"]
         end
         
         Worker --> Email
@@ -213,6 +250,23 @@ graph TD
         Worker --> Phone
         Worker --> WhatsApp
     end
+
+    %% Beautiful Professional Slate & Pastel Styling Definitions
+    classDef gateway fill:#f1f5f9,stroke:#64748b,stroke-width:1.5px,color:#0f172a;
+    classDef server fill:#ecfeff,stroke:#0891b2,stroke-width:2px,color:#083344,font-weight:bold;
+    classDef database fill:#f0f9ff,stroke:#0284c7,stroke-width:1.5px,color:#0c4a6e;
+    classDef presentation fill:#f5f3ff,stroke:#7c3aed,stroke-width:1.5px,color:#2e1065;
+    classDef queue fill:#fdf2f8,stroke:#db2777,stroke-width:1.5px,color:#500724;
+    classDef channel fill:#ecfdf5,stroke:#059669,stroke-width:1.5px,color:#064e3b;
+    classDef user fill:#e0e7ff,stroke:#4f46e5,stroke-width:1.5px,color:#1e1b4b,font-weight:bold;
+
+    class NGINX,Limits,LB gateway;
+    class AppServer server;
+    class RDS3,Redis database;
+    class UI,ABDashboard,TwinAnalyzer,Outreach,Portfolio,Campaign presentation;
+    class SQS,Worker queue;
+    class Email,SMS,Phone,WhatsApp channel;
+    class User,BM user;
 ```
 
 ### 🛡️ Core Infrastructure & Resilience Layers:
