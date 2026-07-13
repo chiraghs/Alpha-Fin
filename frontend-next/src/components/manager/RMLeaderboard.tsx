@@ -17,7 +17,7 @@ export function RMLeaderboard({
   onSelect: (id: number) => void;
 }) {
   return (
-    <div className="card p-4 sm:p-5">
+    <div className="card shrink-0 p-3.5 sm:p-4">
       <div className="mb-3 flex items-center justify-between gap-2">
         <h3 className="flex items-center gap-2 text-sm font-extrabold text-ink">
           <Trophy width={15} height={15} className="text-accent" />
