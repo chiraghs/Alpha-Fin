@@ -22,7 +22,24 @@ To demonstrate the power of this system in a live hackathon pitch, Alpha-Fin is 
 
 ---
 
-## 🌟 Key Features
+## 🤖 AI Classification
+
+**Prospect Assist AI is primarily a Deterministic ML system** with a rule-based personalization layer — with Generative AI integration planned as the next development phase.
+
+| Layer | Type | Description |
+|-------|------|-------------|
+| GBDT Decision Trees | **Deterministic AI** | Rule-learned, reproducible scoring outputs |
+| Loan Readiness Index (LRI) | **Deterministic AI** | Fixed weighted formula — same input yields same score |
+| Clickstream Noise Filter | **Deterministic AI** | Graph path sequence matching, fully rule-based |
+| Risk Underwriting Gate | **Deterministic AI** | Threshold-based pass/fail logic |
+| Income & Cash Flow Engine | **Deterministic AI** | Arithmetic calculation from transaction descriptors |
+| Outreach Template Generator | **Template-Based Generation** | Structured variable-fill templates, not LLM-generated |
+| LLM Outreach (Gemini/GPT) | 🚀 **Generative AI (Roadmap)** | Dynamic, context-aware message generation |
+| Autonomous RM AI Agents | 🚀 **Generative AI (Roadmap)** | Proactive lead outreach with zero manual intervention |
+
+---
+
+
 
 1. **Clickstream Intent Engine**: Classifies user propensity scores dynamically using behavior logs (page views, search items, interest calculator hits, and session frequency), drawing inspiration from alternative underwriting models like **Upstart** and digital footprint profiling like **FinBox** to identify active, high-intent prospects.
 2. **True Income Assessment Engine**: Parses transaction descriptors to map salary credits, EMIs, insurance bills, and Systematic Investment Plans (SIPs) to calculate **Actual Disposable Income**, drawing inspiration from cash-flow verification benchmarks like **Plaid** and automated bank statement analyzers like **Perfios** to estimate real credit capacity.
