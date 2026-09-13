@@ -106,6 +106,12 @@ def refresh_customer_leads(db: Session, customer_id: int):
 def startup_event():
     # Make sure tables exist on launch
     Base.metadata.create_all(bind=engine)
+    # Auto-seed so data is always present (safe on Render's ephemeral filesystem)
+    try:
+        from ..seed import seed_database
+        seed_database()
+    except Exception as e:
+        print(f"[seed] skipped: {e}")
 
 # Serve frontend static files (HTML, CSS, JS)
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "frontend")
