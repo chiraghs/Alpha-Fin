@@ -1,9 +1,12 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from datetime import datetime
 from typing import List
 import random
+import os
 
 from .database import get_db, Base, engine
 from .models import Customer, Transaction, ClickstreamEvent, Lead
@@ -104,9 +107,21 @@ def startup_event():
     # Make sure tables exist on launch
     Base.metadata.create_all(bind=engine)
 
+# Serve frontend static files (HTML, CSS, JS)
+FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "frontend")
+
 @app.get("/")
-def read_root():
+def serve_frontend():
+    index_path = os.path.join(FRONTEND_DIR, "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
     return {"status": "online", "message": "Alpha-Fin scoring services ready"}
+
+# Mount static assets (CSS, JS, images) — must come AFTER API routes
+@app.on_event("startup")
+async def mount_static():
+    if os.path.exists(FRONTEND_DIR):
+        app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
 # --- Customers Endpoints ---
 @app.get("/api/customers", response_model=List[CustomerSchema])
