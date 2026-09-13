@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prospect Assist AI - Retail Lending Intent Engine</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- HEADER -->
+        <header class="app-header">
+            <div class="logo-area">
+                <i class="fa-solid fa-building-columns brand-icon"></i>
+                <div class="brand-text">
+                    <h1>PROSPECT ASSIST AI</h1>
+                    <span>IDBI Innovate 2026 // Track 02</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="btnResetDB" class="btn btn-secondary">
+                    <i class="fa-solid fa-rotate-left"></i> Reset Sandbox DB
+                </button>
+                <div class="status-indicator">
+                    <span class="dot pulse"></span> Sandbox Online
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN LAYOUT -->
+        <main class="split-view">
+            <!-- LEFT PANEL: CUSTOMER MOBILE SIMULATOR -->
+            <section class="left-panel">
+                <div class="panel-header">
+                    <h2><i class="fa-solid fa-mobile-screen-button"></i> Customer Portal Simulator</h2>
+                    <p>Select a customer to act on behalf of and trigger real-time events</p>
+                </div>
+                
+                <div class="selector-card">
+                    <label for="customerSelect">Active Customer Profile:</label>
+                    <select id="customerSelect" class="form-select">
+                        <!-- Loaded dynamically -->
+                    </select>
+                </div>
+
+                <div class="phone-frame-wrapper">
+                    <div class="phone-frame">
+                        <div class="phone-screen">
+                            <!-- Phone Status Bar -->
+                            <div class="phone-status-bar">
+                                <span class="time">12:00</span>
+                                <div class="indicators">
+                                    <i class="fa-solid fa-wifi"></i>
+                                    <i class="fa-solid fa-signal"></i>
+                                    <i class="fa-solid fa-battery-full"></i>
+                                </div>
+                            </div>
+                            <!-- Phone App Header -->
+                            <div class="phone-app-header">
+                                <div class="bank-title"><i class="fa-solid fa-b"></i> IDBI Go Mobile+</div>
+                                <div class="user-greeting">Hello, <span id="phoneUserName">Aarav</span></div>
+                            </div>
+                            <!-- Phone App Content -->
+                            <div class="phone-app-content">
+                                <!-- Account Card -->
+                                <div class="account-card">
+                                    <span class="card-label">Primary Account</span>
+                                    <h3 id="phoneUserAccount">IDBI100892931</h3>
+                                    <div class="card-footer">
+                                        <span>Savings Balance</span>
+                                        <strong id="phoneUserBalance">₹1,42,000.00</strong>
+                                    </div>
+                                </div>
+
+                                <!-- App Navigation/Actions -->
+                                <div class="app-section">
+                                    <h4>Explore Products</h4>
+                                    <div class="product-grid">
+                                        <button class="product-btn" onclick="logClickstream('/auto-loan', 'VIEW')">
+                                            <i class="fa-solid fa-car"></i>
+                                            <span>Auto Loan</span>
+                                        </button>
+                                        <button class="product-btn" onclick="logClickstream('/home-loan', 'VIEW')">
+                                            <i class="fa-solid fa-house-chimney"></i>
+                                            <span>Home Loan</span>
+                                        </button>
+                                        <button class="product-btn" onclick="logClickstream('/personal-loan', 'VIEW')">
+                                            <i class="fa-solid fa-user-tie"></i>
+                                            <span>Personal Loan</span>
+                                        </button>
+                                        <button class="product-btn" onclick="logClickstream('/mortgage-loan', 'VIEW')">
+                                            <i class="fa-solid fa-hand-holding-dollar"></i>
+                                            <span>Mortgage</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Calculator Action -->
+                                <div class="app-section">
+                                    <h4>Financial Tools</h4>
+                                    <div class="calculator-trigger" onclick="logClickstream('/loan-calculator', 'CALCULATE_EMI')">
+                                        <div class="calc-icon"><i class="fa-solid fa-calculator"></i></div>
+                                        <div class="calc-text">
+                                            <h5>Calculate Loan EMIs</h5>
+                                            <p>Check dynamic monthly payments instantly</p>
+                                        </div>
+                                        <i class="fa-solid fa-chevron-right arrow"></i>
+                                    </div>
+                                </div>
+
+                                <!-- Quick Event Simulator Actions (HACKATHON POWER BUTTONS) -->
+                                <div class="app-section hack-triggers">
+                                    <h4>Simulation Triggers</h4>
+                                    <p class="section-desc">Instantly push realistic transactions or behaviors into the system to watch the RM board update:</p>
+                                    
+                                    <button class="btn btn-hack btn-hike" onclick="triggerSalaryHike()">
+                                        <i class="fa-solid fa-trend-up"></i> Simulate 15% Salary Increment
+                                    </button>
+                                    <button class="btn btn-hack btn-auto" onclick="triggerAutoSearch()">
+                                        <i class="fa-solid fa-car-side"></i> Browse Auto Loan Page (3x hits)
+                                    </button>
+                                    <button class="btn btn-hack btn-decor" onclick="triggerDecorSpend()">
+                                        <i class="fa-solid fa-couch"></i> Spend ₹65,000 at Home Decor Vendor
+                                    </button>
+                                    <button class="btn btn-hack btn-penalty" onclick="triggerCcPenalty()">
+                                        <i class="fa-solid fa-circle-exclamation"></i> Hit Credit Card Late Fee Penalty
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RIGHT PANEL: RM COMMAND CENTER -->
+            <section class="right-panel">
+                <div class="panel-header" style="display: flex; justify-content: space-between; align-items: start; width: 100%;">
+                    <div>
+                        <h2><i class="fa-solid fa-chart-line"></i> Relationship Manager Hub</h2>
+                        <p>Real-time underwriting feed, customer propensity tracking, and AI-driven campaign triggers</p>
+                    </div>
+                    <div id="connectionStatusBadge" class="connection-status-badge live-connected" style="margin-top: 4px;">
+                        <i class="fa-solid fa-circle pulse-dot"></i> Live API
+                    </div>
+                </div>
+
+                <!-- Stats summary strip -->
+                <div class="stats-strip">
+                    <div class="stat-card">
+                        <span class="stat-label">Total Leads</span>
+                        <h3 id="statTotalLeads">0</h3>
+                    </div>
+                    <div class="stat-card hot-stat">
+                        <span class="stat-label">Hot Leads</span>
+                        <h3 id="statHotLeads">0</h3>
+                    </div>
+                    <div class="stat-card target-stat">
+                        <span class="stat-label">Conversion Rate</span>
+                        <h3>>30% <span class="badge">Target</span></h3>
+                    </div>
+                </div>
+                <!-- NAVIGATION TABS -->
+                <div class="rm-nav-tabs">
+                    <button id="btnTabLeads" class="nav-tab-btn active" onclick="switchRMView('leads')">
+                        <i class="fa-solid fa-list-check"></i> Prioritized Leads & Outreach
+                    </button>
+                    <button id="btnTabPortfolio" class="nav-tab-btn" onclick="switchRMView('portfolio')">
+                        <i class="fa-solid fa-users-gear"></i> Customer Twin Portfolio
+                    </button>
+                </div>
+
+                <!-- TAB 1: LEADS & OUTREACH HUB -->
+                <div id="rmViewLeads" class="tab-pane-content">
+                    <!-- A/B TESTING PERFORMANCE CARD -->
+                    <div class="performance-card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-square-poll-vertical"></i> Campaign Efficacy & Conversion Lift</h3>
+                            <span class="refresh-indicator"><i class="fa-solid fa-calculator"></i> Real-time Impact Assessment</span>
+                        </div>
+                        <div class="perf-metrics">
+                            <div class="perf-metric-group treated-group">
+                                <span class="grp-label"><i class="fa-solid fa-wand-magic-sparkles"></i> Treated (AI Assist)</span>
+                                <div class="grp-val-line">
+                                    <h4 id="perfTreatedRate">0.0%</h4>
+                                    <span class="grp-fraction" id="perfTreatedFraction">(0/0 Conv)</span>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar green-bar" id="perfTreatedProgress" style="width: 0%;"></div></div>
+                            </div>
+                            <div class="perf-metric-group control-group">
+                                <span class="grp-label"><i class="fa-solid fa-envelope-open-text"></i> Control (Spam)</span>
+                                <div class="grp-val-line">
+                                    <h4 id="perfControlRate">0.0%</h4>
+                                    <span class="grp-fraction" id="perfControlFraction">(0/0 Conv)</span>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar grey-bar" id="perfControlProgress" style="width: 0%;"></div></div>
+                            </div>
+                            <div class="perf-metric-group lift-group">
+                                <span class="grp-label">Conversion Lift</span>
+                                <h4 id="perfLiftRate">+0.0%</h4>
+                                <span class="lift-badge" id="perfLiftStatus">Target Met</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- LEAD BOARD TABLE -->
+                    <div class="leads-card">
+                        <div class="card-header flex-header">
+                            <h3><i class="fa-solid fa-list-check"></i> Prioritized Leads</h3>
+                            <div class="threshold-control">
+                                <label for="thresholdSlider">Min Lead Score: <strong id="thresholdLabel">70%</strong></label>
+                                <input type="range" id="thresholdSlider" min="35" max="95" value="70" step="5" class="threshold-slider" oninput="changeThreshold(this.value)">
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="leads-table">
+                                <thead>
+                                    <tr>
+                                        <th>Customer Name</th>
+                                        <th>Target Product</th>
+                                        <th>Disposable Income</th>
+                                        <th>Credit Score</th>
+                                        <th>Readiness (LRI)</th>
+                                        <th>Cohort</th>
+                                        <th>Eligible Limit</th>
+                                        <th>Outreach</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="leadsTableBody">
+                                    <!-- Loaded dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: BEHAVIORAL TWIN PORTFOLIO HUB -->
+                <div id="rmViewPortfolio" class="tab-pane-content hidden">
+                    <div class="twin-portfolio-layout">
+                        <!-- Left Sidebar: Customer List selector -->
+                        <div class="portfolio-sidebar">
+                            <h4>Customer Profiles</h4>
+                            <div id="portfolioCustomerList" class="portfolio-list">
+                                <!-- Loaded dynamically -->
+                            </div>
+                        </div>
+                        
+                        <!-- Right Detail: Deep twin profile display -->
+                        <div class="portfolio-detail-card">
+                            <div id="twinDetailEmpty" class="detail-empty-state">
+                                <i class="fa-solid fa-users-gear"></i>
+                                <p>Select a customer from the left list to inspect their detailed Behavioral Financial Twin scorecard, explainable rating logs, and cross-selling loan limits.</p>
+                            </div>
+                            
+                            <div id="twinDetailContent" class="detail-content hidden">
+                                <div class="detail-customer-header">
+                                    <div>
+                                        <h3 id="twinDetailName">Vikram Iyer</h3>
+                                        <span id="twinDetailAccNum" class="detail-acc-label">A/C: 9876543210</span>
+                                    </div>
+                                    <span id="twinDetailRisk" class="badge">Low Risk</span>
+                                </div>
+                                <hr class="divider">
+                                
+                                <div class="product-selector-twin-wrapper">
+                                    <label for="twinProductSelector">Inspect Product Twin: </label>
+                                    <select id="twinProductSelector" class="twin-product-select" onchange="renderSelectedTwinProduct()">
+                                        <option value="Auto Loan">🚗 Auto Loan</option>
+                                        <option value="Home Loan">🏠 Home Loan</option>
+                                        <option value="Personal Loan">💰 Personal Loan</option>
+                                        <option value="Mortgage Loan">🏢 Mortgage Loan</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="twin-grid-large">
+                                    <div class="twin-progress-card">
+                                        <div class="progress-card-header">
+                                            <span class="score-label">Repayment Capacity</span>
+                                            <strong id="twinDetailRepaymentVal">0.0%</strong>
+                                        </div>
+                                        <div class="progress-bar-container-large"><div class="progress-bar-large green-bar" id="twinDetailRepaymentProgress" style="width: 0%;"></div></div>
+                                    </div>
+                                    <div class="twin-progress-card">
+                                        <div class="progress-card-header">
+                                            <span class="score-label">Intent Score (GBDT)</span>
+                                            <strong id="twinDetailIntentVal">0.0</strong>
+                                        </div>
+                                        <div class="progress-bar-container-large"><div class="progress-bar-large cyan-bar" id="twinDetailIntentProgress" style="width: 0%;"></div></div>
+                                    </div>
+                                    <div class="twin-progress-card">
+                                        <div class="progress-card-header">
+                                            <span class="score-label">Financial Discipline</span>
+                                            <strong id="twinDetailDisciplineVal">0.0</strong>
+                                        </div>
+                                        <div class="progress-bar-container-large"><div class="progress-bar-large blue-bar" id="twinDetailDisciplineProgress" style="width: 0%;"></div></div>
+                                    </div>
+                                    <div class="twin-progress-card">
+                                        <div class="progress-card-header">
+                                            <span class="score-label">Spending Stability</span>
+                                            <strong id="twinDetailStabilityVal">0.0</strong>
+                                        </div>
+                                        <div class="progress-bar-container-large"><div class="progress-bar-large green-bar" id="twinDetailStabilityProgress" style="width: 0%;"></div></div>
+                                    </div>
+                                    <div class="twin-progress-card">
+                                        <div class="progress-card-header">
+                                            <span class="score-label">Income Confidence</span>
+                                            <strong id="twinDetailConfidenceVal">0.0</strong>
+                                        </div>
+                                        <div class="progress-bar-container-large"><div class="progress-bar-large yellow-bar" id="twinDetailConfidenceProgress" style="width: 0%;"></div></div>
+                                    </div>
+                                    <div class="twin-progress-card">
+                                        <div class="progress-card-header">
+                                            <span class="score-label">Offer Acceptance</span>
+                                            <strong id="twinDetailAcceptanceVal">0.0%</strong>
+                                        </div>
+                                        <div class="progress-bar-container-large"><div class="progress-bar-large purple-bar" id="twinDetailAcceptanceProgress" style="width: 0%;"></div></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="twin-composite-metric-large">
+                                    <span>Weighted Lead Score:</span>
+                                    <h2 id="twinDetailLeadScore">0.0%</h2>
+                                </div>
+                                
+                                <div class="twin-analysis-narration">
+                                    <h4><i class="fa-solid fa-brain"></i> Explainable AI Narrative Profile</h4>
+                                    <p id="twinDetailNarrative">Loading analytical profile narrative...</p>
+                                </div>
+                                
+                                <div class="twin-eligibility-summary">
+                                    <h4><i class="fa-solid fa-circle-check"></i> Eligible Loan Products & Underwriting Limits</h4>
+                                    <div class="offers-grid-small" id="twinDetailOffers">
+                                        <!-- Loaded dynamically -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- OUTREACH CAMPAIGN MODAL DIALOG -->
+                <div id="outreachDrawer" class="outreach-drawer hidden">
+                    <div class="outreach-modal-card">
+                        <div class="drawer-header">
+                            <h3><i class="fa-solid fa-paper-plane"></i> Outreach Campaign</h3>
+                            <button class="btn-close-drawer" onclick="closeOutreachDrawer()"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <div class="drawer-content">
+                        <div class="lead-context-summary">
+                            <p>Generating campaign outreach for <strong id="outreachCustomerName">Aarav Mehta</strong> for a <strong id="outreachLoanType">Auto Loan</strong> of up to <strong id="outreachAmount">₹0</strong>.</p>
+                            <div id="outreachControlWarning" class="control-warning-banner hidden">
+                                <i class="fa-solid fa-circle-exclamation"></i> <strong>Control Group Case:</strong> This customer is in the Control group. Generating generic pre-approved templates instead of hyper-personalized behavioral AI copy.
+                            </div>
+                            
+                            <!-- Behavioral Financial Twin Dynamic Profile Grid -->
+                            <div id="financialTwinSection" class="financial-twin-section">
+                                <h4><i class="fa-solid fa-dna"></i> Behavioral Financial Twin</h4>
+                                <div class="twin-grid">
+                                    <div class="twin-score-card">
+                                        <span class="score-label">Repayment Capacity</span>
+                                        <strong id="twinRepayment">0.0%</strong>
+                                    </div>
+                                    <div class="twin-score-card">
+                                        <span class="score-label">Intent Score</span>
+                                        <strong id="twinIntent">0.0</strong>
+                                    </div>
+                                    <div class="twin-score-card">
+                                        <span class="score-label">Financial Discipline</span>
+                                        <strong id="twinDiscipline">0.0</strong>
+                                    </div>
+                                    <div class="twin-score-card">
+                                        <span class="score-label">Spending Stability</span>
+                                        <strong id="twinStability">0.0</strong>
+                                    </div>
+                                    <div class="twin-score-card">
+                                        <span class="score-label">Income Confidence</span>
+                                        <strong id="twinIncomeConf">0.0</strong>
+                                    </div>
+                                    <div class="twin-score-card">
+                                        <span class="score-label">Offer Acceptance</span>
+                                        <strong id="twinAcceptance">0.0%</strong>
+                                    </div>
+                                </div>
+                                <div class="twin-composite-score">
+                                    <span>Loan Readiness Index (LRI):</span>
+                                    <strong id="twinLeadScore">0.0%</strong>
+                                </div>
+                                <div id="outreachTimelineReasons" style="margin-top: 1.25rem; border-top: 1px dashed rgba(255,255,255,0.15); padding-top: 1rem;">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="channel-tabs">
+                            <button id="tabWhatsapp" class="tab-btn active" onclick="switchOutreachChannel('whatsapp')">
+                                <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                            </button>
+                            <button id="tabEmail" class="tab-btn" onclick="switchOutreachChannel('email')">
+                                <i class="fa-solid fa-envelope"></i> Email
+                            </button>
+                            <button id="tabCallScript" class="tab-btn" onclick="switchOutreachChannel('call_script')">
+                                <i class="fa-solid fa-phone"></i> RM Script
+                            </button>
+                        </div>
+
+                        <div class="outreach-text-wrapper">
+                            <div id="outreachContentLoader" class="loader-spinner hidden">
+                                <i class="fa-solid fa-circle-notch fa-spin"></i> Generating script...
+                            </div>
+                            <pre id="outreachContentText" class="outreach-pre">Click generate to view content...</pre>
+                        </div>
+
+                        <div class="drawer-actions">
+                            <button id="btnCopyOutreach" class="btn btn-primary">
+                                <i class="fa-solid fa-copy"></i> Copy to Clipboard
+                            </button>
+                            
+                            <div class="drawer-actions-divider"></div>
+                            
+                            <div class="outcome-section">
+                                <span class="outcome-label">Log Campaign Result:</span>
+                                <div class="outcome-buttons">
+                                    <button class="btn btn-outcome btn-convert" onclick="markLeadStatus('Converted')">
+                                        <i class="fa-solid fa-circle-check"></i> Convert Lead
+                                    </button>
+                                    <button class="btn btn-outcome btn-reject" onclick="markLeadStatus('Rejected')">
+                                        <i class="fa-solid fa-circle-xmark"></i> Reject Lead
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toastNotification" class="toast hidden">
+        <i class="fa-solid fa-circle-check toast-icon"></i>
+        <span id="toastMessage">Lead updated successfully!</span>
+    </div>
+
+    <!-- App Script -->
+    <script src="app.js"></script>
+</body>
+</html>
