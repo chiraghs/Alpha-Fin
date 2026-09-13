@@ -23,7 +23,6 @@ from .services.credit import calculate_disposable_income, calculate_loan_eligibi
 from .services.scoring import evaluate_propensity_and_intent
 from .services.ai_outreach import generate_outreach_copy
 from .services.analytics import compute_team_performance
-from ..seed import seed_database
 
 app = FastAPI(
     title="Prospect Assist AI Core Engine",
