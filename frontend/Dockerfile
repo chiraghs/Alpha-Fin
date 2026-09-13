@@ -1,6 +1,7 @@
-# Prospect Assist AI — Next.js frontend (static export served by nginx)
-# Build context: ./frontend-next
-FROM node:20-alpine AS build
+# Prospect Assist AI — Next.js frontend
+# Multi-stage Dockerfile for Next.js frontend
+# Build context: ./frontend
+FROM node:20-alpine AS builder
 WORKDIR /app
 
 COPY package.json package-lock.json ./
