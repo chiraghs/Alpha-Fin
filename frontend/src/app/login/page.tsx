@@ -10,8 +10,8 @@ import { useTheme } from "@/components/ThemeProvider";
 export default function LoginPage() {
   const router = useRouter();
   const { theme, toggle } = useTheme();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState(DEMO_CREDENTIALS.email);
+  const [password, setPassword] = useState(DEMO_CREDENTIALS.password);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -42,6 +42,8 @@ export default function LoginPage() {
     setPassword(creds.password);
     setError("");
   };
+
+  const isManager = /(^|[._-])(manager|mgr|head|lead|branch)([._-]|@)/i.test(email);
 
   return (
     <div
@@ -164,6 +166,8 @@ export default function LoginPage() {
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   Signing in…
                 </>
+              ) : isManager ? (
+                "Sign in to Branch Manager Cockpit"
               ) : (
                 "Sign in to RM Hub"
               )}
@@ -180,8 +184,13 @@ export default function LoginPage() {
             </span>
             <div className="mt-3 grid grid-cols-2 gap-2">
               <button
+                type="button"
                 onClick={() => fillDemo("rm")}
-                className="flex flex-col items-start gap-0.5 rounded-xl border border-accent/50 bg-surface-1 px-3 py-2 text-left transition hover:border-accent hover:bg-accent hover:text-white"
+                className={`flex flex-col items-start gap-0.5 rounded-xl border px-3 py-2 text-left transition ${
+                  email === DEMO_CREDENTIALS.email
+                    ? "border-accent bg-accent text-white shadow-sm ring-2 ring-accent/30"
+                    : "border-accent/50 bg-surface-1 text-ink hover:border-accent hover:bg-accent/10"
+                }`}
               >
                 <span className="flex items-center gap-1 text-[11px] font-extrabold">
                   <Check width={11} height={11} /> Relationship Manager
@@ -189,8 +198,13 @@ export default function LoginPage() {
                 <span className="text-[10px] opacity-80">{DEMO_CREDENTIALS.email}</span>
               </button>
               <button
+                type="button"
                 onClick={() => fillDemo("manager")}
-                className="flex flex-col items-start gap-0.5 rounded-xl border border-brand/50 bg-surface-1 px-3 py-2 text-left transition hover:border-brand hover:bg-brand hover:text-white"
+                className={`flex flex-col items-start gap-0.5 rounded-xl border px-3 py-2 text-left transition ${
+                  email === MANAGER_CREDENTIALS.email
+                    ? "border-brand bg-brand text-white shadow-sm ring-2 ring-brand/30"
+                    : "border-brand/50 bg-surface-1 text-ink hover:border-brand hover:bg-brand/10"
+                }`}
               >
                 <span className="flex items-center gap-1 text-[11px] font-extrabold">
                   <Chart width={11} height={11} /> Branch Manager
