@@ -108,8 +108,13 @@ def startup_event():
     Base.metadata.create_all(bind=engine)
     # Auto-seed so data is always present (safe on Render's ephemeral filesystem)
     try:
-        from ..seed import seed_database
+        import sys, os as _os
+        _backend_dir = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
+        if _backend_dir not in sys.path:
+            sys.path.insert(0, _backend_dir)
+        from seed import seed_database
         seed_database()
+        print("[seed] Database seeded successfully.")
     except Exception as e:
         print(f"[seed] skipped: {e}")
 
