@@ -22,9 +22,12 @@ import {
 function apiBase(): string {
   if (process.env.NEXT_PUBLIC_API_BASE) return process.env.NEXT_PUBLIC_API_BASE;
   if (typeof window !== "undefined") {
-    return `${window.location.protocol}//${window.location.hostname}:8000/api`;
+    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+      return `${window.location.protocol}//${window.location.hostname}:8000/api`;
+    }
+    return "https://alpha-fin-a3y2.onrender.com/api";
   }
-  return "http://localhost:8000/api";
+  return "https://alpha-fin-a3y2.onrender.com/api";
 }
 
 let mode: ConnectionMode = "live";

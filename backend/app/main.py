@@ -117,23 +117,9 @@ def startup_event():
     except Exception as e:
         print(f"[seed] skipped: {e}")
 
-# Serve frontend static files (HTML, CSS, JS)
-FRONTEND_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend"))
-
 @app.get("/")
-def serve_frontend():
-    index_path = os.path.join(FRONTEND_DIR, "index.html")
-    if os.path.exists(index_path):
-        return FileResponse(index_path, media_type="text/html")
-    return {"status": "online", "message": "Alpha-Fin scoring services ready"}
-
-@app.get("/app.js")
-def serve_js():
-    return FileResponse(os.path.join(FRONTEND_DIR, "app.js"), media_type="application/javascript")
-
-@app.get("/style.css")
-def serve_css():
-    return FileResponse(os.path.join(FRONTEND_DIR, "style.css"), media_type="text/css")
+def read_root():
+    return {"status": "online", "message": "Prospect Assist AI / Alpha-Fin scoring services ready"}
 
 # --- Customers Endpoints ---
 @app.get("/api/customers", response_model=List[CustomerSchema])

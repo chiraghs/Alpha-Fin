@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: write
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
@@ -19,7 +22,7 @@ jobs:
       with:
         python-version: '3.11'
 
-    - name: Install Dependencies
+    - name: Install Python Dependencies
       run: |
         python -m pip install --upgrade pip
         if [ -f backend/requirements.txt ]; then pip install -r backend/requirements.txt; fi
@@ -28,7 +31,36 @@ jobs:
       run: |
         PYTHONPATH=backend pytest backend/tests/
 
-  # NOTE: the old deploy-github-pages job (which pushed the legacy frontend/
-  # prototype to gh-pages on every main push) has been removed. gh-pages now
-  # holds a hand-maintained landing page that links to the Render-hosted app;
-  # the app itself deploys via render.yaml (Deploy-to-Render button).
+  deploy-github-pages:
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Install Frontend Dependencies
+      run: |
+        cd frontend
+        npm ci
+
+    - name: Build Next.js Static Export
+      run: |
+        cd frontend
+        NEXT_PUBLIC_BASE_PATH=/Alpha-Fin NEXT_PUBLIC_API_BASE=https://alpha-fin-a3y2.onrender.com/api npm run build
+        touch out/.nojekyll
+
+    - name: Deploy to GitHub Pages (gh-pages branch)
+      uses: JamesIves/github-pages-deploy-action@v4
+      with:
+        folder: frontend/out
+        branch: gh-pages
+
